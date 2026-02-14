@@ -115,7 +115,7 @@ Cron ejecuta las tareas en un **entorno mínimo**: no carga tu archivo `.bashrc`
 0 3 * * * /home/usuario/scripts/respaldo.sh
 
 # Con log: guardas la salida y los errores
-0 3 * * * /home/usuario/scripts/respaldo.sh >> /var/log/respaldo.log 2>&1
+0 3 * * * /home/usuario/scripts/respaldo.sh >> /home/usuario/logs/respaldo.log 2>&1
 ```
 
 El `2>&1` al final significa "envía los errores al mismo lugar que la salida normal". Así tanto los mensajes normales como los errores quedan guardados en el log.
@@ -136,7 +136,8 @@ Veamos un ejemplo completo de un script diseñado para ser ejecutado por cron:
 # Script de limpieza: elimina archivos temporales mayores a 7 días
 # Diseñado para ejecutarse con cron
 
-LOG="/var/log/limpieza.log"
+LOG="$HOME/logs/limpieza.log"
+mkdir -p "$HOME/logs"
 DIR="/tmp"
 
 echo "=== Limpieza $(date) ===" >> "$LOG"

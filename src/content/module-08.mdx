@@ -286,7 +286,7 @@ A diferencia de `for` (que recorre una lista), `while` repite una acción **mien
 
 # Contador simple
 contador=1
-while [ $contador -le 5 ]; do
+while [ "$contador" -le 5 ]; do
     echo "Contando: $contador"
     ((contador++))
 done
