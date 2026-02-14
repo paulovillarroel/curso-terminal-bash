@@ -211,15 +211,35 @@ const advancedModules = [
       });
     }
 
+    // Confetti
+    async function fireConfetti(btn) {
+      const { default: confetti } = await import('canvas-confetti');
+      const rect = btn.getBoundingClientRect();
+      const x = (rect.left + rect.width / 2) / window.innerWidth;
+      const y = (rect.top + rect.height / 2) / window.innerHeight;
+
+      confetti({
+        particleCount: 80,
+        spread: 60,
+        origin: { x, y },
+        colors: ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'],
+        disableForReducedMotion: true,
+      });
+    }
+
     // Button click handlers
     document.querySelectorAll('.complete-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const sectionId = btn.getAttribute('data-complete-btn');
         if (!sectionId) return;
         const progress = getProgress();
-        progress[sectionId] = !progress[sectionId];
+        const wasCompleted = progress[sectionId];
+        progress[sectionId] = !wasCompleted;
         saveProgress(progress);
         updateUI();
+
+        // Fire confetti only when marking as completed
+        if (!wasCompleted) fireConfetti(btn);
       });
     });
 
