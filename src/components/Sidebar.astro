@@ -1,18 +1,19 @@
 ---
 import ThemeToggle from './ThemeToggle.astro';
 
-const modules = [
-  { id: 'inicio', label: 'Inicio' },
+const basicModules = [
   { id: 'modulo-1', label: '1. Introducción' },
   { id: 'modulo-2', label: '2. Primeros pasos' },
   { id: 'modulo-3', label: '3. Archivos y directorios' },
   { id: 'modulo-4', label: '4. Visualización y búsqueda' },
   { id: 'modulo-5', label: '5. Editores de texto' },
+];
+
+const advancedModules = [
   { id: 'modulo-6', label: '6. Permisos y admin' },
   { id: 'modulo-7', label: '7. Procesos' },
   { id: 'modulo-8', label: '8. Bash scripting' },
   { id: 'modulo-9', label: '9. Cron' },
-  { id: 'ejercicios', label: 'Ejercicios finales' },
 ];
 ---
 
@@ -24,8 +25,21 @@ const modules = [
     <ThemeToggle />
   </div>
   <nav class="flex-1 overflow-y-auto sidebar-scroll p-4">
+    <!-- Inicio -->
+    <a
+      href="#inicio"
+      class="sidebar-link block px-3 py-2 text-sm text-slate-600 dark:text-slate-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200 transition-colors"
+      data-section="inicio"
+    >
+      Inicio
+    </a>
+
+    <!-- Sección Básica -->
+    <div class="mt-4 mb-2 px-3">
+      <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Básico</span>
+    </div>
     <ul class="space-y-1">
-      {modules.map(({ id, label }) => (
+      {basicModules.map(({ id, label }) => (
         <li>
           <a
             href={`#${id}`}
@@ -37,6 +51,53 @@ const modules = [
         </li>
       ))}
     </ul>
+
+    <!-- Sección Avanzada -->
+    <div class="mt-4 mb-2 px-3">
+      <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Avanzado</span>
+    </div>
+    <ul class="space-y-1">
+      {advancedModules.map(({ id, label }) => (
+        <li>
+          <a
+            href={`#${id}`}
+            class="sidebar-link block px-3 py-2 text-sm text-slate-600 dark:text-slate-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200 transition-colors"
+            data-section={id}
+          >
+            {label}
+          </a>
+        </li>
+      ))}
+    </ul>
+
+    <!-- Ejercicios -->
+    <div class="mt-4 mb-2 px-3">
+      <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Práctica</span>
+    </div>
+    <a
+      href="#ejercicios"
+      class="sidebar-link block px-3 py-2 text-sm text-slate-600 dark:text-slate-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200 transition-colors"
+      data-section="ejercicios"
+    >
+      Ejercicios finales
+    </a>
+
+    <!-- Progreso -->
+    <div class="mt-6 mx-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg space-y-2">
+      <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+        <span>Progreso</span>
+        <span id="sidebar-progress-text">0 / 10</span>
+      </div>
+      <div class="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+        <div id="sidebar-progress-bar" class="h-full bg-green-500 rounded-full transition-all duration-500" style="width: 0%"></div>
+      </div>
+      <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 pt-1">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span>~10 horas</span>
+      </div>
+    </div>
   </nav>
 </aside>
 
@@ -45,6 +106,7 @@ const modules = [
     const links = document.querySelectorAll('.sidebar-link');
     const sections = document.querySelectorAll('section[id]');
 
+    // Intersection observer for active section
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -61,5 +123,114 @@ const modules = [
     );
 
     sections.forEach((section) => observer.observe(section));
+
+    // Progress tracking
+    const STORAGE_KEY = 'curso-terminal-progress';
+    const TRACKABLE = [
+      'modulo-1','modulo-2','modulo-3','modulo-4','modulo-5',
+      'modulo-6','modulo-7','modulo-8','modulo-9','ejercicios'
+    ];
+
+    function getProgress() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+      } catch { return {}; }
+    }
+
+    function saveProgress(progress) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+    }
+
+    function updateUI() {
+      const progress = getProgress();
+      const completed = TRACKABLE.filter(id => progress[id]).length;
+
+      // Update sidebar checkmarks
+      TRACKABLE.forEach(id => {
+        const link = document.querySelector(`.sidebar-link[data-section="${id}"]`);
+        if (!link) return;
+        const existing = link.querySelector('.check-icon');
+        if (progress[id] && !existing) {
+          const check = document.createElement('span');
+          check.className = 'check-icon ml-auto text-green-500 dark:text-green-400 shrink-0';
+          check.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>';
+          link.appendChild(check);
+        } else if (!progress[id] && existing) {
+          existing.remove();
+        }
+
+        // Mobile nav checkmarks
+        const mobileLinks = document.querySelectorAll(`.mobile-nav-link[href="#${id}"]`);
+        mobileLinks.forEach(mLink => {
+          const mExisting = mLink.querySelector('.check-icon');
+          if (progress[id] && !mExisting) {
+            const check = document.createElement('span');
+            check.className = 'check-icon ml-auto text-green-500 dark:text-green-400 shrink-0';
+            check.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>';
+            mLink.appendChild(check);
+          } else if (!progress[id] && mExisting) {
+            mExisting.remove();
+          }
+        });
+      });
+
+      // Update progress bar
+      const bar = document.getElementById('sidebar-progress-bar');
+      const text = document.getElementById('sidebar-progress-text');
+      const mBar = document.getElementById('mobile-progress-bar');
+      const mText = document.getElementById('mobile-progress-text');
+      const pct = Math.round((completed / TRACKABLE.length) * 100);
+
+      if (bar) bar.style.width = `${pct}%`;
+      if (text) text.textContent = `${completed} / ${TRACKABLE.length}`;
+      if (mBar) mBar.style.width = `${pct}%`;
+      if (mText) mText.textContent = `${completed} / ${TRACKABLE.length}`;
+
+      // Update complete buttons
+      document.querySelectorAll('.complete-btn').forEach(btn => {
+        const sectionId = btn.getAttribute('data-complete-btn');
+        if (!sectionId) return;
+        const isCompleted = progress[sectionId];
+        const icon = btn.querySelector('.complete-btn-icon');
+        const svg = btn.querySelector('.complete-btn-icon svg');
+        const label = btn.querySelector('.complete-btn-text');
+
+        if (isCompleted) {
+          btn.classList.add('border-green-500', 'dark:border-green-500', 'bg-green-50', 'dark:bg-green-950/30', 'text-green-600', 'dark:text-green-400');
+          btn.classList.remove('border-slate-200', 'dark:border-slate-600', 'text-slate-600', 'dark:text-slate-400');
+          if (icon) { icon.classList.add('bg-green-500', 'border-green-500', 'text-white'); }
+          if (svg) svg.classList.remove('opacity-0');
+          if (label) label.textContent = 'Completado';
+        } else {
+          btn.classList.remove('border-green-500', 'dark:border-green-500', 'bg-green-50', 'dark:bg-green-950/30', 'text-green-600', 'dark:text-green-400');
+          btn.classList.add('border-slate-200', 'dark:border-slate-600', 'text-slate-600', 'dark:text-slate-400');
+          if (icon) { icon.classList.remove('bg-green-500', 'border-green-500', 'text-white'); }
+          if (svg) svg.classList.add('opacity-0');
+          if (label) label.textContent = 'Marcar como completado';
+        }
+      });
+    }
+
+    // Button click handlers
+    document.querySelectorAll('.complete-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const sectionId = btn.getAttribute('data-complete-btn');
+        if (!sectionId) return;
+        const progress = getProgress();
+        progress[sectionId] = !progress[sectionId];
+        saveProgress(progress);
+        updateUI();
+      });
+    });
+
+    // Make sidebar links flex for checkmark alignment
+    TRACKABLE.forEach(id => {
+      const link = document.querySelector(`.sidebar-link[data-section="${id}"]`);
+      if (link) link.classList.add('flex', 'items-center');
+      const mobileLinks = document.querySelectorAll(`.mobile-nav-link[href="#${id}"]`);
+      mobileLinks.forEach(mLink => mLink.classList.add('flex', 'items-center'));
+    });
+
+    updateUI();
   });
 </script>

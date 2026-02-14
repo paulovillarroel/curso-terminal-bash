@@ -1,18 +1,19 @@
 ---
 import ThemeToggle from './ThemeToggle.astro';
 
-const modules = [
-  { id: 'inicio', label: 'Inicio' },
+const basicModules = [
   { id: 'modulo-1', label: '1. Introducción' },
   { id: 'modulo-2', label: '2. Primeros pasos' },
   { id: 'modulo-3', label: '3. Archivos y directorios' },
   { id: 'modulo-4', label: '4. Visualización y búsqueda' },
   { id: 'modulo-5', label: '5. Editores de texto' },
+];
+
+const advancedModules = [
   { id: 'modulo-6', label: '6. Permisos y admin' },
   { id: 'modulo-7', label: '7. Procesos' },
   { id: 'modulo-8', label: '8. Bash scripting' },
   { id: 'modulo-9', label: '9. Cron' },
-  { id: 'ejercicios', label: 'Ejercicios finales' },
 ];
 ---
 
@@ -42,18 +43,77 @@ const modules = [
       </svg>
     </button>
   </div>
-  <ul class="p-4 space-y-1 overflow-y-auto max-h-[calc(100vh-60px)]">
-    {modules.map(({ id, label }) => (
-      <li>
-        <a
-          href={`#${id}`}
-          class="mobile-nav-link block px-3 py-2 text-sm text-slate-600 dark:text-slate-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200 transition-colors"
-        >
-          {label}
-        </a>
-      </li>
-    ))}
-  </ul>
+  <div class="p-4 overflow-y-auto max-h-[calc(100vh-60px)]">
+    <!-- Inicio -->
+    <a
+      href="#inicio"
+      class="mobile-nav-link block px-3 py-2 text-sm text-slate-600 dark:text-slate-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200 transition-colors"
+    >
+      Inicio
+    </a>
+
+    <!-- Sección Básica -->
+    <div class="mt-3 mb-2 px-3">
+      <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Básico</span>
+    </div>
+    <ul class="space-y-1">
+      {basicModules.map(({ id, label }) => (
+        <li>
+          <a
+            href={`#${id}`}
+            class="mobile-nav-link block px-3 py-2 text-sm text-slate-600 dark:text-slate-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200 transition-colors"
+          >
+            {label}
+          </a>
+        </li>
+      ))}
+    </ul>
+
+    <!-- Sección Avanzada -->
+    <div class="mt-3 mb-2 px-3">
+      <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Avanzado</span>
+    </div>
+    <ul class="space-y-1">
+      {advancedModules.map(({ id, label }) => (
+        <li>
+          <a
+            href={`#${id}`}
+            class="mobile-nav-link block px-3 py-2 text-sm text-slate-600 dark:text-slate-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200 transition-colors"
+          >
+            {label}
+          </a>
+        </li>
+      ))}
+    </ul>
+
+    <!-- Ejercicios -->
+    <div class="mt-3 mb-2 px-3">
+      <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Práctica</span>
+    </div>
+    <a
+      href="#ejercicios"
+      class="mobile-nav-link block px-3 py-2 text-sm text-slate-600 dark:text-slate-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200 transition-colors"
+    >
+      Ejercicios finales
+    </a>
+
+    <!-- Progreso -->
+    <div class="mt-4 mx-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg space-y-2">
+      <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+        <span>Progreso</span>
+        <span id="mobile-progress-text">0 / 10</span>
+      </div>
+      <div class="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+        <div id="mobile-progress-bar" class="h-full bg-green-500 rounded-full transition-all duration-500" style="width: 0%"></div>
+      </div>
+      <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 pt-1">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span>~10 horas</span>
+      </div>
+    </div>
+  </div>
 </nav>
 
 <script>

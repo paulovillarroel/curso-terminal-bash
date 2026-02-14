@@ -8,6 +8,7 @@ interface Props {
 
 const { id, title, number, alternate = false } = Astro.props;
 const bgClass = alternate ? 'bg-slate-50 dark:bg-slate-800/50' : 'bg-white dark:bg-slate-900';
+const isTrackable = id.startsWith('modulo-') || id === 'ejercicios';
 ---
 
 <section id={id} class={`scroll-mt-14 lg:scroll-mt-0 py-16 ${bgClass}`}>
@@ -23,5 +24,21 @@ const bgClass = alternate ? 'bg-slate-50 dark:bg-slate-800/50' : 'bg-white dark:
     <div class="prose prose-slate max-w-none prose-headings:scroll-mt-20 prose-code:before:content-none prose-code:after:content-none prose-code:bg-slate-100 dark:prose-code:bg-slate-700 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:font-medium">
       <slot />
     </div>
+
+    {isTrackable && (
+      <div class="mt-10 pt-6 border-t border-slate-200 dark:border-slate-700">
+        <button
+          data-complete-btn={id}
+          class="complete-btn group flex items-center gap-3 px-5 py-3 rounded-lg border-2 border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:border-green-500 dark:hover:border-green-500 hover:text-green-600 dark:hover:text-green-400 transition-all cursor-pointer"
+        >
+          <span class="complete-btn-icon flex items-center justify-center w-6 h-6 rounded-full border-2 border-current transition-all">
+            <svg class="w-3.5 h-3.5 opacity-0 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          </span>
+          <span class="complete-btn-text text-sm font-medium">Marcar como completado</span>
+        </button>
+      </div>
+    )}
   </div>
 </section>

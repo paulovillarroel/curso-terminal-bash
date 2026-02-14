@@ -42,6 +42,13 @@ body {
   background-color: #475569;
 }
 
+/* Sidebar completed check alignment */
+.sidebar-link .check-icon,
+.mobile-nav-link .check-icon {
+  display: inline-flex;
+  margin-left: auto;
+}
+
 /* Dark mode prose overrides */
 .dark .prose {
   --tw-prose-body: #cbd5e1;
