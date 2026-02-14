@@ -1,6 +1,6 @@
 # Curso de Terminal y Bash
 
-Curso práctico de Terminal y Bash para principiantes (~10 horas), construido como una SPA (Single Page Application). Forma parte del programa de [Hazla con Datos](https://hazlacondatos.com/) y es complementario al [curso de configuración del entorno de desarrollo](https://paulovillarroel.github.io/configuracion-entorno/).
+Curso práctico de Terminal y Bash para principiantes (~10 horas), construido como una SPA (Single Page Application). Es parte de los módulos previos al curso de Ciencia de Datos en Salud de [Hazla con Datos](https://hazlacondatos.com/) y es complementario al [curso de configuración del entorno de desarrollo](https://paulovillarroel.github.io/configuracion-entorno/).
 
 **[Ver el curso en vivo](https://paulovillarroel.github.io/curso-terminal-bash/)**
 
@@ -88,7 +88,9 @@ src/
 
 ## Deploy
 
-El sitio está configurado para GitHub Pages con base path `/curso-terminal-bash`. Para deployar con GitHub Actions, crea el archivo `.github/workflows/deploy.yml` siguiendo la [guía de Astro para GitHub Pages](https://docs.astro.build/en/guides/deploy/github/).
+El sitio se despliega automáticamente en GitHub Pages mediante GitHub Actions (`.github/workflows/deploy.yml`). Cada push a `main` dispara el build y deploy.
+
+**URL**: https://paulovillarroel.github.io/curso-terminal-bash/
 
 ## Licencia
 
