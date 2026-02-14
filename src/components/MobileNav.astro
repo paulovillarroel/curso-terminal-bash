@@ -1,0 +1,84 @@
+---
+import ThemeToggle from './ThemeToggle.astro';
+
+const modules = [
+  { id: 'inicio', label: 'Inicio' },
+  { id: 'modulo-1', label: '1. Introducción' },
+  { id: 'modulo-2', label: '2. Primeros pasos' },
+  { id: 'modulo-3', label: '3. Archivos y directorios' },
+  { id: 'modulo-4', label: '4. Visualización y búsqueda' },
+  { id: 'modulo-5', label: '5. Editores de texto' },
+  { id: 'modulo-6', label: '6. Permisos y admin' },
+  { id: 'modulo-7', label: '7. Procesos' },
+  { id: 'modulo-8', label: '8. Bash scripting' },
+  { id: 'modulo-9', label: '9. Cron' },
+  { id: 'ejercicios', label: 'Ejercicios finales' },
+];
+---
+
+<!-- Mobile header -->
+<header class="lg:hidden fixed top-0 left-0 right-0 h-14 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-b border-slate-200 dark:border-slate-700 z-50 flex items-center justify-between px-4">
+  <span class="font-bold text-slate-900 dark:text-slate-100">Terminal & Bash</span>
+  <div class="flex items-center gap-1">
+    <ThemeToggle />
+    <button id="mobile-menu-btn" class="p-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100" aria-label="Abrir menú">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+      </svg>
+    </button>
+  </div>
+</header>
+
+<!-- Mobile overlay -->
+<div id="mobile-overlay" class="lg:hidden fixed inset-0 bg-black/50 z-50 hidden" aria-hidden="true"></div>
+
+<!-- Mobile drawer -->
+<nav id="mobile-drawer" class="lg:hidden fixed top-0 right-0 w-72 h-screen bg-white dark:bg-slate-900 z-50 transform translate-x-full transition-transform duration-300 shadow-xl">
+  <div class="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">
+    <span class="font-bold text-slate-900 dark:text-slate-100">Navegación</span>
+    <button id="mobile-close-btn" class="p-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100" aria-label="Cerrar menú">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+  </div>
+  <ul class="p-4 space-y-1 overflow-y-auto max-h-[calc(100vh-60px)]">
+    {modules.map(({ id, label }) => (
+      <li>
+        <a
+          href={`#${id}`}
+          class="mobile-nav-link block px-3 py-2 text-sm text-slate-600 dark:text-slate-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200 transition-colors"
+        >
+          {label}
+        </a>
+      </li>
+    ))}
+  </ul>
+</nav>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('mobile-menu-btn');
+    const closeBtn = document.getElementById('mobile-close-btn');
+    const overlay = document.getElementById('mobile-overlay');
+    const drawer = document.getElementById('mobile-drawer');
+    const links = document.querySelectorAll('.mobile-nav-link');
+
+    function open() {
+      overlay?.classList.remove('hidden');
+      drawer?.classList.remove('translate-x-full');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function close() {
+      overlay?.classList.add('hidden');
+      drawer?.classList.add('translate-x-full');
+      document.body.style.overflow = '';
+    }
+
+    btn?.addEventListener('click', open);
+    closeBtn?.addEventListener('click', close);
+    overlay?.addEventListener('click', close);
+    links.forEach((link) => link.addEventListener('click', close));
+  });
+</script>

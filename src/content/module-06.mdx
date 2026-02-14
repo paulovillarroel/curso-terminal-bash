@@ -1,0 +1,188 @@
+import Callout from '../components/Callout.astro';
+import CommandTable from '../components/CommandTable.astro';
+
+En Linux, cada archivo y carpeta tiene **permisos** que controlan quién puede leer, escribir o ejecutar ese archivo. Esto es fundamental para la seguridad del sistema: evita que otros usuarios modifiquen tus archivos o que programas no autorizados hagan cambios donde no deben.
+
+Al principio puede parecer complicado, pero en la práctica usarás los mismos patrones de permisos una y otra vez. Vamos paso a paso.
+
+### ¿Qué son los permisos?
+
+Cada archivo tiene tres tipos de permisos que se aplican a tres categorías de usuarios:
+
+**Los tres tipos de permisos:**
+
+| Permiso | Letra | ¿Qué significa en un archivo? | ¿Qué significa en una carpeta? |
+|---------|-------|-------------------------------|-------------------------------|
+| Lectura | `r` | Puedes ver el contenido | Puedes listar los archivos de dentro |
+| Escritura | `w` | Puedes modificar el contenido | Puedes crear o eliminar archivos dentro |
+| Ejecución | `x` | Puedes ejecutarlo como programa | Puedes entrar a la carpeta con `cd` |
+
+**Las tres categorías de usuarios:**
+
+| Categoría | ¿Quién es? |
+|-----------|-----------|
+| **Owner (u)** | El dueño del archivo (generalmente quien lo creó) |
+| **Group (g)** | Un grupo de usuarios al que pertenece el archivo |
+| **Others (o)** | Todos los demás usuarios del sistema |
+
+### Leer permisos con `ls -l`
+
+Cuando ejecutas `ls -l`, la primera columna muestra los permisos. Parece críptico al principio, pero tiene una estructura clara. Veamos un ejemplo:
+
+```bash
+ls -l mi-script.sh
+# -rwxr-xr-- 1 paulo users 256 ene 15 10:30 mi-script.sh
+```
+
+Desglicemos esa primera parte `-rwxr-xr--` carácter por carácter:
+
+```
+- rwx r-x r--
+│ │   │   │
+│ │   │   └── Others (otros): r-- = solo pueden leer
+│ │   └────── Group (grupo):  r-x = pueden leer y ejecutar
+│ └────────── Owner (dueño):  rwx = puede leer, escribir y ejecutar
+└──────────── Tipo: - = archivo normal (d = directorio, l = enlace)
+```
+
+Cada grupo de tres letras sigue el mismo orden: **r** (lectura), **w** (escritura), **x** (ejecución). Si hay un guión `-` en lugar de una letra, significa que ese permiso está **desactivado**.
+
+Veamos más ejemplos para que quede claro:
+
+```bash
+ls -l
+# drwxr-xr-x  carpeta/          ← directorio, todos pueden entrar y leer
+# -rw-r--r--  documento.txt     ← archivo, solo el dueño puede editar
+# -rwxr-xr-x  programa          ← archivo ejecutable por todos
+# -rw-------  clave-privada.pem ← archivo privado, solo el dueño accede
+```
+
+### Cambiar permisos con `chmod`
+
+El comando `chmod` (de "change mode") cambia los permisos de un archivo. Hay dos formas de usarlo: con letras (más intuitivo) o con números (más rápido una vez que lo aprendes).
+
+#### Modo simbólico (con letras)
+
+La sintaxis es: `chmod [quién][operación][permiso] archivo`
+
+- **Quién**: `u` (owner), `g` (group), `o` (others), `a` (todos)
+- **Operación**: `+` (agregar), `-` (quitar), `=` (establecer exactamente)
+- **Permiso**: `r` (lectura), `w` (escritura), `x` (ejecución)
+
+```bash
+# Dar permiso de ejecución al dueño
+chmod u+x script.sh
+# Antes: -rw-r--r--  →  Después: -rwxr--r--
+
+# Quitar permiso de escritura a otros
+chmod o-w archivo.txt
+
+# Dar lectura y ejecución al grupo
+chmod g+rx programa
+
+# Dar permiso de ejecución a TODOS
+chmod a+x script.sh
+# Equivalente a: chmod u+x,g+x,o+x script.sh
+```
+
+<Callout type="tip" title="El caso más común">
+  La situación más frecuente es hacer un script ejecutable después de crearlo: `chmod +x mi-script.sh`. Cuando no especificas quién (u/g/o), se aplica a todos. Este comando lo usarás constantemente.
+</Callout>
+
+#### Modo numérico (con números octales)
+
+El modo numérico es más rápido pero requiere entender la lógica. Cada permiso tiene un valor:
+
+- **r** (lectura) = **4**
+- **w** (escritura) = **2**
+- **x** (ejecución) = **1**
+- Sin permiso = **0**
+
+Para calcular el número de cada categoría, **sumas los valores** de los permisos que quieres activar. Luego escribes tres dígitos: uno para el dueño, otro para el grupo y otro para otros.
+
+Veamos un ejemplo paso a paso:
+
+```
+Queremos: rwxr-xr--
+  Owner:  r + w + x = 4 + 2 + 1 = 7
+  Group:  r + - + x = 4 + 0 + 1 = 5
+  Others: r + - + - = 4 + 0 + 0 = 4
+
+Resultado: chmod 754 archivo
+```
+
+Los permisos numéricos más comunes que usarás:
+
+<CommandTable commands={[
+  { command: "chmod 755 archivo", description: "rwxr-xr-x — Scripts y programas (todos ejecutan, solo dueño edita)" },
+  { command: "chmod 644 archivo", description: "rw-r--r-- — Archivos normales (todos leen, solo dueño edita)" },
+  { command: "chmod 700 archivo", description: "rwx------ — Solo el dueño tiene acceso total" },
+  { command: "chmod 600 archivo", description: "rw------- — Archivo privado (claves SSH, passwords)" },
+]} />
+
+<Callout type="info" title="¿Cuál modo usar?">
+  Para acciones simples como "hacer ejecutable", el modo simbólico es más fácil: `chmod +x script.sh`. Para establecer permisos exactos, el modo numérico es más preciso: `chmod 755 script.sh`. Con el tiempo usarás ambos según la situación.
+</Callout>
+
+### El superusuario: `sudo`
+
+En Linux, hay tareas que solo puede hacer el **administrador** (también llamado **root** o superusuario): instalar programas, modificar archivos del sistema, gestionar servicios, etc. El comando `sudo` (de "Super User DO") te permite ejecutar un comando con privilegios de administrador:
+
+```bash
+# Actualizar la lista de paquetes disponibles
+sudo apt update
+
+# Instalar un programa
+sudo apt install htop
+
+# Editar un archivo de configuración del sistema
+sudo nano /etc/hosts
+```
+
+Cuando usas `sudo`, el sistema te pedirá tu contraseña. Esto es una medida de seguridad para confirmar que realmente eres tú.
+
+<Callout type="warning" title="sudo es poder y responsabilidad">
+  Con `sudo` puedes hacer **cualquier cosa** en el sistema, incluyendo borrarlo completamente. Antes de ejecutar un comando con `sudo`, asegúrate de entender qué hace. Algunas precauciones:
+
+  - **Nunca** ejecutes `sudo rm -rf /` — borra todo el sistema operativo.
+  - **Nunca** copies comandos con `sudo` de internet sin entenderlos primero.
+  - Si un comando no funciona sin `sudo`, pregúntate **por qué** necesita permisos de administrador antes de agregarlo.
+</Callout>
+
+Un truco útil: si olvidaste poner `sudo` al inicio de un comando y te dio error de permisos, puedes ejecutar `sudo !!` para repetir el último comando con `sudo`:
+
+```bash
+apt update
+# Error: permiso denegado
+
+sudo !!
+# Equivale a: sudo apt update
+```
+
+### Cambiar propietario con `chown`
+
+El comando `chown` (de "change owner") cambia quién es el dueño de un archivo. Necesitas `sudo` para usarlo:
+
+```bash
+# Cambiar el dueño de un archivo
+sudo chown usuario archivo.txt
+
+# Cambiar dueño y grupo a la vez
+sudo chown usuario:grupo archivo.txt
+
+# Cambiar recursivamente (carpeta y todo lo de adentro)
+sudo chown -R usuario:grupo carpeta/
+```
+
+### Ejercicios del módulo
+
+1. Ejecuta `ls -l` en tu directorio home. Observa la columna de permisos. ¿Qué permisos tienen tus archivos y carpetas?
+2. Crea un archivo `secreto.txt` con `echo "datos confidenciales" > secreto.txt`. Verifica sus permisos con `ls -l secreto.txt`.
+3. Quita todos los permisos a otros usuarios: `chmod o-rwx secreto.txt`. Verifica con `ls -l`. ¿Cómo cambió la cadena de permisos?
+4. Ahora ponle permisos `600` (solo dueño lee y escribe): `chmod 600 secreto.txt`. Verifica con `ls -l`.
+5. Crea un archivo `script-test.sh` con `echo '#!/bin/bash' > script-test.sh && echo 'echo "funciona"' >> script-test.sh`. Intenta ejecutarlo con `./script-test.sh`. ¿Qué error te da?
+6. Dale permisos de ejecución con `chmod +x script-test.sh`. Ahora intenta ejecutarlo de nuevo. ¿Funciona?
+7. Usa `chmod 755 script-test.sh` y verifica con `ls -l`. ¿Qué permisos tiene ahora?
+8. Intenta editar `/etc/hostname` con `nano /etc/hostname` (sin sudo). ¿Qué pasa? Ahora intenta con `sudo nano /etc/hostname` (pero sal sin guardar con Ctrl+X).
+9. Ejecuta `sudo whoami`. ¿Qué usuario aparece? Compara con `whoami` sin sudo.
+10. **Desafío**: Calcula qué número octal corresponde a los permisos `rwxr--r--`. Luego verifica creando un archivo y aplicándole esos permisos.

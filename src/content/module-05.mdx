@@ -1,0 +1,177 @@
+import Callout from '../components/Callout.astro';
+import CommandTable from '../components/CommandTable.astro';
+
+Hasta ahora has aprendido a ver archivos con `cat` y `less`, pero ¿qué pasa cuando necesitas **modificar** un archivo directamente en la terminal? Para eso existen los editores de texto en terminal. Son esenciales cuando trabajas en servidores remotos (que no tienen interfaz gráfica) o cuando necesitas hacer una edición rápida sin abrir otro programa.
+
+En este módulo aprenderás dos editores: **Nano** (fácil y amigable) y **Vim** (potente pero con curva de aprendizaje). Como principiante, te recomiendo empezar con Nano y aprender solo lo básico de Vim.
+
+### Nano: el editor amigable
+
+**Nano** es el editor de texto más fácil de usar en la terminal. Si has usado un editor de texto gráfico como Notepad, Nano se sentirá familiar: escribes, borras, y usas atajos de teclado para guardar y salir.
+
+Para abrir un archivo con Nano, simplemente escribe:
+
+```bash
+# Abrir un archivo existente
+nano archivo.txt
+
+# Si el archivo no existe, Nano lo crea al guardar
+nano nuevo-archivo.txt
+
+# Abrir con números de línea visibles (recomendado)
+nano -l archivo.txt
+```
+
+Cuando Nano se abra, verás el contenido del archivo en la pantalla y una barra de atajos en la parte inferior. Puedes empezar a escribir inmediatamente, como en cualquier editor de texto normal.
+
+#### Los atajos que debes conocer
+
+Nano muestra sus atajos en la parte inferior de la pantalla. El símbolo `^` significa la tecla **Ctrl** y `M-` significa la tecla **Alt**. Estos son los más importantes:
+
+<CommandTable commands={[
+  { command: "Ctrl + O", description: "Guardar el archivo (te pide confirmar el nombre)" },
+  { command: "Ctrl + X", description: "Salir de Nano (si hay cambios sin guardar, te pregunta)" },
+  { command: "Ctrl + K", description: "Cortar la línea completa donde está el cursor" },
+  { command: "Ctrl + U", description: "Pegar la línea cortada" },
+  { command: "Ctrl + W", description: "Buscar texto dentro del archivo" },
+  { command: "Ctrl + \\", description: "Buscar y reemplazar texto" },
+  { command: "Ctrl + G", description: "Mostrar la ayuda completa" },
+  { command: "Ctrl + C", description: "Mostrar en qué línea y columna está el cursor" },
+  { command: "Alt + U", description: "Deshacer el último cambio" },
+  { command: "Alt + E", description: "Rehacer (volver a aplicar un cambio deshecho)" },
+]} />
+
+<Callout type="tip" title="El flujo más común en Nano">
+  El 90% de las veces harás lo mismo: abrir el archivo, hacer tus cambios, presionar **Ctrl + O** para guardar, presionar **Enter** para confirmar, y luego **Ctrl + X** para salir. Practica esta secuencia hasta que sea automática.
+</Callout>
+
+#### Ejemplo práctico: crear tu primer script
+
+Vamos a crear un pequeño script usando Nano. Esto combina lo que aprendiste en módulos anteriores con la edición de archivos:
+
+```bash
+# Abre Nano para crear un nuevo archivo
+nano mi-script.sh
+```
+
+Dentro de Nano, escribe exactamente esto:
+
+```bash title="mi-script.sh"
+#!/bin/bash
+echo "¡Mi primer script!"
+echo "Fecha: $(date)"
+echo "Usuario: $(whoami)"
+echo "Estoy en: $(pwd)"
+```
+
+Ahora guarda y sal:
+1. Presiona `Ctrl + O` (guardar)
+2. Presiona `Enter` (confirmar nombre del archivo)
+3. Presiona `Ctrl + X` (salir)
+
+Finalmente, haz el script ejecutable y ejecútalo:
+
+```bash
+chmod +x mi-script.sh
+./mi-script.sh
+```
+
+Deberías ver algo como:
+```
+¡Mi primer script!
+Fecha: sáb 14 feb 2026 15:30:00
+Usuario: tu-usuario
+Estoy en: /home/tu-usuario
+```
+
+### Vim: el editor potente
+
+**Vim** es un editor completamente diferente a Nano. Es extremadamente potente y eficiente una vez que lo dominas, pero tiene una curva de aprendizaje pronunciada. La razón principal para conocerlo es que **viene instalado en prácticamente todos los sistemas Linux**, incluyendo servidores donde Nano podría no estar disponible.
+
+<Callout type="info" title="¿Necesito aprender Vim?">
+  Para empezar, no. Nano es suficiente para la mayoría de las tareas. Pero es muy útil conocer los comandos básicos de Vim porque eventualmente te encontrarás en un servidor donde sea la única opción disponible. Aquí aprenderás solo lo esencial para no quedarte atrapado.
+</Callout>
+
+#### El concepto de modos
+
+Lo que hace a Vim confuso al principio es que tiene **modos**. En Nano, puedes escribir apenas lo abres. En Vim, cuando lo abres estás en modo **Normal**, donde las teclas no escriben texto sino que ejecutan comandos. Para escribir, necesitas cambiar al modo **Inserción**.
+
+| Modo | Cómo entrar | Para qué sirve |
+|------|-------------|-----------------|
+| **Normal** | Presiona `Esc` | Navegar por el archivo, copiar, pegar, eliminar líneas |
+| **Inserción** | Presiona `i` | Escribir texto, como en un editor normal |
+| **Comando** | Escribe `:` (desde modo Normal) | Guardar, salir, buscar, configurar |
+
+#### El flujo básico: abrir, editar, guardar, salir
+
+Aquí está la secuencia completa para editar un archivo con Vim. Sigue estos pasos exactamente:
+
+```bash
+# Paso 1: Abrir el archivo
+vim archivo.txt
+```
+
+```
+# Paso 2: Vim se abre en modo Normal (no puedes escribir todavía)
+# Presiona la tecla i para entrar en modo Inserción
+# Verás -- INSERT -- en la parte inferior de la pantalla
+
+# Paso 3: Escribe lo que necesites (ahora sí puedes escribir)
+
+# Paso 4: Cuando termines de escribir, presiona Esc
+# para volver al modo Normal
+
+# Paso 5: Escribe :wq y presiona Enter para guardar y salir
+# :w = write (guardar), :q = quit (salir)
+```
+
+<Callout type="warning" title="¿Atrapado en Vim?">
+  Es uno de los memes más famosos de la programación: "¿Cómo salgo de Vim?". Si alguna vez te quedas atrapado, presiona **Esc** varias veces (para asegurarte de estar en modo Normal) y luego escribe `:q!` y presiona **Enter**. El signo de exclamación significa "salir sin guardar, no me importan los cambios". Esto te sacará siempre.
+</Callout>
+
+#### Comandos esenciales de Vim
+
+No necesitas memorizar todos estos ahora. Solo conócelos como referencia para cuando los necesites:
+
+<CommandTable commands={[
+  { command: "i", description: "Entrar en modo inserción (escribir antes del cursor)" },
+  { command: "a", description: "Entrar en modo inserción (escribir después del cursor)" },
+  { command: "Esc", description: "Volver al modo normal (dejar de escribir)" },
+  { command: ":w", description: "Guardar el archivo" },
+  { command: ":q", description: "Salir (solo si no hay cambios sin guardar)" },
+  { command: ":wq", description: "Guardar y salir" },
+  { command: ":q!", description: "Salir SIN guardar (forzar salida)" },
+  { command: "dd", description: "Eliminar la línea completa (en modo normal)" },
+  { command: "yy", description: "Copiar la línea completa" },
+  { command: "p", description: "Pegar debajo de la línea actual" },
+  { command: "u", description: "Deshacer el último cambio" },
+  { command: "/texto", description: "Buscar 'texto' hacia adelante" },
+  { command: "n", description: "Ir a la siguiente coincidencia" },
+  { command: "G", description: "Ir al final del archivo" },
+  { command: "gg", description: "Ir al inicio del archivo" },
+]} />
+
+### ¿Cuándo usar cada editor?
+
+| Situación | Recomendación |
+|-----------|---------------|
+| Edición rápida de un archivo de configuración | **Nano** — abre, edita, guarda, listo |
+| Servidor remoto donde nano no está instalado | **Vim** — siempre disponible |
+| Estás empezando a aprender terminal | **Nano** — sin curva de aprendizaje |
+| Quieres máxima productividad a largo plazo | **Vim** — pero requiere semanas de práctica |
+| Editar archivos de código de un proyecto | **Un editor gráfico** (VS Code, etc.) — mejor experiencia |
+
+<Callout type="tip" title="Consejo para ciencia de datos">
+  En tu trabajo diario de ciencia de datos, probablemente usarás VS Code, RStudio o Jupyter. Los editores de terminal son para ediciones rápidas de configuración (como `.bashrc`, archivos `.env`, o `config.yaml`) y para trabajar en servidores. No intentes desarrollar proyectos completos en Nano o Vim si tienes acceso a un editor gráfico.
+</Callout>
+
+### Ejercicios del módulo
+
+1. Abre Nano con `nano prueba-nano.txt`, escribe tres líneas de texto cualquiera, guarda con `Ctrl + O` + Enter, y sal con `Ctrl + X`. Verifica con `cat prueba-nano.txt`.
+2. Vuelve a abrir el archivo con `nano prueba-nano.txt`. Usa `Ctrl + K` para cortar una línea y `Ctrl + U` para pegarla en otro lugar. Guarda y sal.
+3. Abre Nano y usa `Ctrl + W` para buscar una palabra dentro del archivo. ¿La encuentra?
+4. Crea el script `hola.sh` que mostramos en el ejemplo práctico. Dale permisos de ejecución y ejecútalo.
+5. Modifica `hola.sh` con Nano para agregar una línea que diga `echo "Directorio home: $HOME"`. Guarda y ejecuta de nuevo.
+6. Abre Vim con `vim prueba-vim.txt`. Presiona `i`, escribe "Hola desde Vim", presiona `Esc`, escribe `:wq` y presiona Enter. Verifica con `cat prueba-vim.txt`.
+7. Abre el mismo archivo en Vim. Practica la "salida de emergencia": presiona `Esc` varias veces y luego escribe `:q!` + Enter.
+8. **Desafío**: Crea un script con Nano que muestre la fecha, tu usuario, y cuántos archivos hay en el directorio actual (pista: usa `ls | wc -l`).

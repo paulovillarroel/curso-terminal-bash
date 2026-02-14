@@ -1,0 +1,74 @@
+import Callout from '../components/Callout.astro';
+
+### ¿Qué es la terminal?
+
+Cuando usas tu computador normalmente, haces clic en iconos, arrastras archivos y navegas por menús visuales. Eso se llama **interfaz gráfica** (o GUI). La **terminal** es una forma diferente de interactuar con tu computador: en lugar de hacer clic, **escribes instrucciones en texto**. Puede parecer intimidante al principio, pero una vez que le tomas el ritmo, muchas tareas se vuelven más rápidas y poderosas.
+
+Piensa en la terminal como una conversación directa con tu computador. Tú escribes un comando, presionas Enter, y el computador te responde con el resultado. Así de simple.
+
+### ¿Por qué es importante para ciencia de datos?
+
+Este curso es parte del programa de [Hazla con Datos](https://hazlacondatos.com/) y está pensado como un complemento directo del [curso de configuración del entorno de desarrollo](https://paulovillarroel.github.io/configuracion-entorno/). Si estás aprendiendo ciencia de datos, la terminal va a aparecer constantemente en tu camino:
+
+- **Instalar herramientas**: Python, R, librerías, gestores de paquetes... todo se instala más fácil por terminal.
+- **Usar Git**: El control de versiones, fundamental para cualquier proyecto de datos, funciona desde la terminal.
+- **Trabajar con servidores**: Si necesitas procesar datos en la nube o en un servidor remoto, la terminal es tu única opción.
+- **Automatizar tareas**: ¿Descargar datos todos los días? ¿Limpiar archivos temporales? Los scripts de Bash lo hacen por ti.
+- **Docker y contenedores**: Herramientas modernas de ciencia de datos se manejan desde la línea de comandos.
+
+No necesitas ser experto en terminal para hacer ciencia de datos, pero sí necesitas sentirte cómodo con lo básico. Este curso te lleva exactamente hasta ese punto.
+
+### Conceptos clave que debes conocer
+
+Antes de empezar, hay algunos términos que vas a escuchar mucho. No te preocupes por memorizarlos ahora; los irás entendiendo con la práctica.
+
+La **terminal** es la aplicación o ventana donde escribes comandos. En Windows puedes usar Windows Terminal con WSL, en macOS está la app Terminal, y en Linux hay varias opciones como GNOME Terminal o Konsole.
+
+El **shell** es el programa que interpreta lo que escribes y lo convierte en instrucciones que el computador entiende. Es como un traductor entre tú y el sistema operativo. Los shells más comunes son:
+
+- **Bash** ("Bourne Again Shell"): el shell estándar en la mayoría de distribuciones Linux. Es el que usaremos en este curso.
+- **Zsh** ("Z Shell"): un shell más moderno que viene por defecto en macOS desde Catalina. Tiene mejor autocompletado y personalización.
+
+La buena noticia es que **Bash y Zsh son muy similares para uso básico**. Todo lo que aprenderás en este curso funciona igual en ambos. Las diferencias importantes solo aparecen en configuraciones avanzadas que no cubrimos aquí.
+
+El **prompt** es el texto que aparece antes de tu cursor, esperando que escribas algo. Generalmente muestra tu nombre de usuario, el nombre del computador y el directorio donde estás. Se ve algo así:
+
+```bash
+usuario@mi-pc:~$
+```
+
+Cuando veas el `$` al final, significa que la terminal está lista para recibir tu comando.
+
+### Configuración del entorno
+
+<Callout type="info" title="Requisito previo">
+  Antes de continuar, necesitas tener una terminal funcionando en tu computador.
+  Si aún no la tienes lista, sigue el **curso de configuración del entorno** donde te guiamos paso a paso según tu sistema operativo (Windows con WSL, macOS o Linux):
+
+  <a href="https://paulovillarroel.github.io/configuracion-entorno/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 font-semibold text-blue-600 hover:underline mt-2">
+    Ir al curso de configuración del entorno →
+  </a>
+</Callout>
+
+### Tu primer comando
+
+Una vez que tengas tu terminal abierta, vamos a verificar que todo funciona. Escribe exactamente esto y presiona Enter:
+
+```bash
+echo "¡Hola, terminal!"
+```
+
+Si ves el mensaje `¡Hola, terminal!` en la pantalla, felicidades: tu terminal está funcionando correctamente y acabas de ejecutar tu primer comando. El comando `echo` simplemente repite lo que le escribas. Parece básico, pero lo usarás mucho más adelante.
+
+<Callout type="tip" title="No te preocupes por los errores">
+  Si escribes algo mal, la terminal te mostrará un mensaje de error. No pasa nada grave: simplemente lee el mensaje, corrige el comando y vuelve a intentar. La terminal no va a "romperse" porque te equivoques en un comando.
+</Callout>
+
+### Ejercicios del módulo
+
+Antes de pasar al siguiente módulo, practica lo siguiente:
+
+1. Abre tu terminal y escribe `echo` seguido de tu nombre. ¿Qué aparece?
+2. Escribe un comando cualquiera inventado (como `hola`). Lee el mensaje de error que aparece. ¿Qué te dice?
+3. Presiona la **flecha arriba** en tu teclado. ¿Qué pasa? Esto te será muy útil más adelante.
+4. Escribe `date` y presiona Enter. ¿Qué información te muestra?

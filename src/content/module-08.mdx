@@ -1,0 +1,419 @@
+import Callout from '../components/Callout.astro';
+import CommandTable from '../components/CommandTable.astro';
+
+### ¿Qué es un script de Bash?
+
+Hasta ahora has escrito comandos uno por uno en la terminal. Un **script** es simplemente un archivo de texto que contiene una serie de comandos que se ejecutan en secuencia. En lugar de escribir 10 comandos a mano, los pones todos en un archivo y lo ejecutas una sola vez.
+
+Piensa en un script como una receta de cocina: es una lista de instrucciones paso a paso que el computador sigue automáticamente. Los scripts son increíblemente útiles para automatizar tareas repetitivas, como hacer respaldos, procesar archivos de datos, o configurar un entorno de trabajo.
+
+### Tu primer script
+
+Vamos a crear un script simple paso a paso. Abre Nano y crea un archivo llamado `hola.sh`:
+
+```bash
+nano hola.sh
+```
+
+Escribe lo siguiente:
+
+```bash title="hola.sh"
+#!/bin/bash
+
+# Mi primer script de Bash
+echo "¡Hola desde mi script!"
+echo "Hoy es $(date)"
+echo "Estás en: $(pwd)"
+```
+
+Guarda con `Ctrl + O` + Enter y sal con `Ctrl + X`.
+
+Antes de poder ejecutarlo, necesitas dos pasos:
+
+```bash
+# Paso 1: Dar permiso de ejecución
+chmod +x hola.sh
+
+# Paso 2: Ejecutar el script
+./hola.sh
+```
+
+<Callout type="info" title="El shebang: #!/bin/bash">
+  La primera línea `#!/bin/bash` se llama **shebang** (o hashbang). Le dice al sistema qué programa debe usar para interpretar el script. Sin esta línea, el sistema podría no saber cómo ejecutar tu archivo. **Siempre** incluye el shebang como primera línea de tus scripts de Bash.
+</Callout>
+
+¿Por qué escribimos `./hola.sh` y no solo `hola.sh`? El `./` le dice a la terminal "busca el archivo aquí, en el directorio actual". Sin el `./`, la terminal buscaría un programa llamado `hola.sh` en las carpetas del sistema (como `/usr/bin`), y no lo encontraría.
+
+### Variables
+
+Las variables te permiten guardar información para usarla más adelante. En Bash, asignas una variable con el signo `=` y la usas poniendo `$` antes del nombre:
+
+```bash title="variables.sh"
+#!/bin/bash
+
+# Asignar variables
+nombre="Paulo"
+edad=30
+fecha=$(date +%Y-%m-%d)
+
+# Usar variables con $
+echo "Hola, $nombre"
+echo "Tienes $edad años"
+echo "Fecha: $fecha"
+
+# Usar llaves para delimitar el nombre de la variable
+echo "Archivo: ${nombre}_backup.txt"
+```
+
+<Callout type="warning" title="Sin espacios alrededor del =">
+  En Bash, la asignación de variables **no puede tener espacios** alrededor del `=`. Esto es correcto: `nombre="Paulo"`. Esto dará error: `nombre = "Paulo"`. Es uno de los errores más comunes cuando empiezas con scripting.
+</Callout>
+
+Las llaves `${nombre}` son necesarias cuando la variable va pegada a otro texto. Sin las llaves, `$nombre_backup` buscaría una variable llamada `nombre_backup` (que no existe), en lugar de usar la variable `nombre` seguida del texto `_backup`.
+
+#### Variables especiales
+
+Bash tiene variables especiales que se crean automáticamente. Son especialmente útiles cuando tu script recibe información desde la línea de comandos:
+
+| Variable | Significado |
+|----------|-------------|
+| `$0` | El nombre del script |
+| `$1, $2, ...` | Los argumentos que le pasaste al script |
+| `$#` | La cantidad de argumentos |
+| `$@` | Todos los argumentos juntos |
+| `$?` | El código de salida del último comando (0 = éxito, otro = error) |
+
+Veamos cómo funcionan con un ejemplo:
+
+```bash title="argumentos.sh"
+#!/bin/bash
+
+echo "Este script se llama: $0"
+echo "Primer argumento: $1"
+echo "Segundo argumento: $2"
+echo "Recibí $# argumentos en total"
+echo "Todos los argumentos: $@"
+```
+
+```bash
+chmod +x argumentos.sh
+./argumentos.sh hola mundo
+# Este script se llama: ./argumentos.sh
+# Primer argumento: hola
+# Segundo argumento: mundo
+# Recibí 2 argumentos en total
+# Todos los argumentos: hola mundo
+```
+
+### Leer entrada del usuario con `read`
+
+A veces quieres que tu script le haga preguntas al usuario y espere su respuesta. Para eso usas `read`:
+
+```bash title="interactivo.sh"
+#!/bin/bash
+
+echo "¿Cómo te llamas?"
+read nombre
+
+echo "¿Cuántos años tienes?"
+read edad
+
+echo "¡Hola, $nombre! Tienes $edad años."
+```
+
+Puedes hacer lo mismo de forma más compacta con `read -p`, que muestra el mensaje y espera la respuesta en la misma línea:
+
+```bash
+read -p "Ingresa tu nombre: " nombre
+echo "Hola, $nombre"
+
+# Para passwords (no muestra lo que escribes)
+read -sp "Ingresa tu contraseña: " password
+echo  # salto de línea (porque -s oculta el Enter también)
+echo "Contraseña recibida"
+```
+
+### Condicionales: tomar decisiones con `if`
+
+Los condicionales permiten que tu script tome decisiones: "si se cumple esta condición, haz esto; si no, haz esto otro". La estructura básica es:
+
+```bash
+if [ condición ]; then
+    # código si la condición es verdadera
+elif [ otra_condición ]; then
+    # código si la segunda condición es verdadera
+else
+    # código si ninguna condición se cumplió
+fi
+```
+
+<Callout type="warning" title="Los espacios son obligatorios">
+  Dentro de los corchetes `[ ]`, los espacios son obligatorios. `[ "$edad" -ge 18 ]` es correcto. `["$edad" -ge 18]` dará error. Esto es uno de los aspectos más confusos de Bash para principiantes, pero es una regla simple: siempre deja un espacio después de `[` y antes de `]`.
+</Callout>
+
+Veamos un ejemplo completo:
+
+```bash title="edad.sh"
+#!/bin/bash
+
+read -p "¿Cuántos años tienes? " edad
+
+if [ "$edad" -ge 18 ]; then
+    echo "Eres mayor de edad"
+elif [ "$edad" -ge 13 ]; then
+    echo "Eres adolescente"
+else
+    echo "Eres menor de edad"
+fi
+```
+
+#### Operadores de comparación para números
+
+| Operador | Significado | Ejemplo |
+|----------|-------------|---------|
+| `-eq` | Igual a | `[ "$a" -eq 5 ]` |
+| `-ne` | No igual a | `[ "$a" -ne 0 ]` |
+| `-gt` | Mayor que | `[ "$a" -gt 10 ]` |
+| `-ge` | Mayor o igual que | `[ "$a" -ge 18 ]` |
+| `-lt` | Menor que | `[ "$a" -lt 0 ]` |
+| `-le` | Menor o igual que | `[ "$a" -le 100 ]` |
+
+#### Operadores para texto (strings)
+
+| Operador | Significado | Ejemplo |
+|----------|-------------|---------|
+| `=` | Textos iguales | `[ "$nombre" = "Paulo" ]` |
+| `!=` | Textos diferentes | `[ "$respuesta" != "no" ]` |
+| `-z` | Texto vacío | `[ -z "$variable" ]` |
+| `-n` | Texto no vacío | `[ -n "$variable" ]` |
+
+#### Operadores para archivos
+
+Estos son especialmente útiles para scripts que trabajan con archivos:
+
+| Operador | Significado | Ejemplo |
+|----------|-------------|---------|
+| `-f` | Existe y es un archivo | `[ -f "datos.csv" ]` |
+| `-d` | Existe y es un directorio | `[ -d "carpeta" ]` |
+| `-e` | Existe (archivo o directorio) | `[ -e "algo" ]` |
+| `-r` | Tiene permiso de lectura | `[ -r "archivo" ]` |
+| `-w` | Tiene permiso de escritura | `[ -w "archivo" ]` |
+| `-x` | Tiene permiso de ejecución | `[ -x "script.sh" ]` |
+
+```bash title="verificar.sh"
+#!/bin/bash
+
+archivo=$1
+
+# Verificar que se proporcionó un argumento
+if [ -z "$archivo" ]; then
+    echo "Uso: $0 <nombre-de-archivo>"
+    echo "Ejemplo: $0 datos.csv"
+    exit 1
+fi
+
+# Verificar qué es
+if [ -f "$archivo" ]; then
+    lineas=$(wc -l < "$archivo")
+    echo "'$archivo' es un archivo con $lineas líneas"
+elif [ -d "$archivo" ]; then
+    echo "'$archivo' es un directorio"
+else
+    echo "'$archivo' no existe"
+fi
+```
+
+### Bucle `for`: repetir acciones
+
+El bucle `for` repite una acción para cada elemento de una lista. Es como decir "para cada X, haz Y":
+
+```bash title="for-basico.sh"
+#!/bin/bash
+
+# Iterar sobre una lista de palabras
+for fruta in manzana pera naranja; do
+    echo "Fruta: $fruta"
+done
+# Fruta: manzana
+# Fruta: pera
+# Fruta: naranja
+```
+
+Los usos más prácticos de `for` son recorrer archivos y rangos numéricos:
+
+```bash
+# Procesar todos los archivos .txt del directorio
+for archivo in *.txt; do
+    echo "Procesando: $archivo"
+    wc -l "$archivo"
+done
+
+# Contar del 1 al 5
+for i in {1..5}; do
+    echo "Número: $i"
+done
+
+# Estilo C (si vienes de otro lenguaje)
+for ((i = 0; i < 5; i++)); do
+    echo "Índice: $i"
+done
+```
+
+#### Ejemplo práctico: renombrar archivos en lote
+
+```bash title="renombrar.sh"
+#!/bin/bash
+
+# Renombrar todos los .txt a .md
+for archivo in *.txt; do
+    # Verificar que realmente hay archivos .txt
+    [ -f "$archivo" ] || continue
+
+    nuevo="${archivo%.txt}.md"
+    mv "$archivo" "$nuevo"
+    echo "Renombrado: $archivo → $nuevo"
+done
+```
+
+La expresión `${archivo%.txt}` elimina `.txt` del final del nombre. Luego le agregamos `.md`. Es una forma muy útil de manipular nombres de archivo en Bash.
+
+### Bucle `while`: repetir mientras se cumpla una condición
+
+A diferencia de `for` (que recorre una lista), `while` repite una acción **mientras** una condición sea verdadera:
+
+```bash title="while.sh"
+#!/bin/bash
+
+# Contador simple
+contador=1
+while [ $contador -le 5 ]; do
+    echo "Contando: $contador"
+    ((contador++))
+done
+```
+
+Un uso muy práctico de `while` es leer un archivo línea por línea:
+
+```bash
+# Leer cada línea de un archivo
+while IFS= read -r linea; do
+    echo "Línea: $linea"
+done < archivo.txt
+```
+
+#### Menú interactivo con `while` y `case`
+
+Este es un patrón muy común en scripts de Bash: un menú que se repite hasta que el usuario elige salir:
+
+```bash title="menu.sh"
+#!/bin/bash
+
+while true; do
+    echo ""
+    echo "=== MENÚ ==="
+    echo "1) Mostrar fecha"
+    echo "2) Listar archivos"
+    echo "3) Uso de disco"
+    echo "4) Salir"
+    read -p "Elige una opción: " opcion
+
+    case $opcion in
+        1) date ;;
+        2) ls -la ;;
+        3) df -h ;;
+        4) echo "¡Adiós!"; break ;;
+        *) echo "Opción no válida, intenta de nuevo" ;;
+    esac
+done
+```
+
+`case` es la versión Bash de un "switch": compara el valor de `$opcion` con cada patrón y ejecuta el código correspondiente. El `*` es el caso por defecto (si no coincide con nada).
+
+### Funciones: reutilizar código
+
+Las funciones te permiten agrupar comandos bajo un nombre y reutilizarlos. Si te encuentras repitiendo el mismo bloque de código varias veces, ponlo en una función:
+
+```bash title="funciones.sh"
+#!/bin/bash
+
+# Definir una función
+saludar() {
+    echo "¡Hola, $1!"
+}
+
+# Llamar a la función
+saludar "Paulo"
+saludar "María"
+# ¡Hola, Paulo!
+# ¡Hola, María!
+```
+
+Los argumentos de las funciones funcionan igual que los del script: `$1` es el primer argumento, `$2` el segundo, etc.
+
+### Ejemplo completo: script de respaldo
+
+Ahora vamos a juntar todo lo que aprendimos en un script útil del mundo real. Este script crea un respaldo comprimido de una carpeta:
+
+```bash title="respaldo.sh"
+#!/bin/bash
+
+# Script de respaldo simple
+# Uso: ./respaldo.sh [directorio-origen] [directorio-destino]
+
+ORIGEN="${1:-.}"
+DESTINO="${2:-./respaldo}"
+FECHA=$(date +%Y%m%d_%H%M%S)
+ARCHIVO="respaldo_${FECHA}.tar.gz"
+
+# Verificar que el directorio origen existe
+if [ ! -d "$ORIGEN" ]; then
+    echo "Error: el directorio '$ORIGEN' no existe"
+    exit 1
+fi
+
+# Crear directorio destino si no existe
+mkdir -p "$DESTINO"
+
+echo "Creando respaldo de '$ORIGEN'..."
+
+# Crear el archivo comprimido
+tar -czf "${DESTINO}/${ARCHIVO}" "$ORIGEN"
+
+# Verificar si el comando tuvo éxito
+if [ $? -eq 0 ]; then
+    tamano=$(du -h "${DESTINO}/${ARCHIVO}" | cut -f1)
+    echo "Respaldo creado exitosamente:"
+    echo "  Archivo: ${DESTINO}/${ARCHIVO}"
+    echo "  Tamaño: ${tamano}"
+else
+    echo "Error al crear el respaldo"
+    exit 1
+fi
+```
+
+```bash
+chmod +x respaldo.sh
+./respaldo.sh ./mi-proyecto ./backups
+# Creando respaldo de './mi-proyecto'...
+# Respaldo creado exitosamente:
+#   Archivo: ./backups/respaldo_20260214_153000.tar.gz
+#   Tamaño: 2.5M
+```
+
+Analicemos las partes nuevas:
+- `${1:-.}` significa "usa el primer argumento, y si no hay ninguno, usa `.`" (directorio actual).
+- `tar -czf` crea un archivo comprimido (.tar.gz). `-c` = crear, `-z` = comprimir con gzip, `-f` = nombre del archivo.
+- `$?` contiene el código de salida del último comando. `0` significa éxito, cualquier otro número significa error.
+
+### Ejercicios del módulo
+
+1. Crea un script `saludo.sh` que reciba un nombre como argumento (`$1`) y diga "¡Hola, [nombre]!". Si no recibe argumento, que diga "¡Hola, mundo!".
+2. Crea un script `info.sh` que muestre tu usuario, la fecha, el directorio actual y cuántos archivos hay en él.
+3. Crea un script que reciba un número como argumento y diga si es positivo, negativo o cero.
+4. Crea un script con `read -p` que pida el nombre de un archivo y diga si existe o no (usa `[ -f "$archivo" ]`).
+5. Crea un script con un bucle `for` que cree 5 archivos: `archivo1.txt`, `archivo2.txt`, ..., `archivo5.txt`.
+6. Crea un script que recorra todos los archivos `.txt` del directorio actual y muestre cuántas líneas tiene cada uno.
+7. Crea un menú interactivo con `while` y `case` que tenga al menos 3 opciones útiles (fecha, archivos, espacio en disco, etc.).
+8. Modifica el script de respaldo del ejemplo para que muestre un mensaje de confirmación antes de crear el respaldo ("¿Estás seguro? (s/n)").
+9. Crea una función `contar_archivos` que reciba un directorio como argumento y diga cuántos archivos contiene.
+10. **Desafío**: Crea un script que reciba una extensión como argumento (ej: `txt`) y cuente cuántos archivos con esa extensión hay en el directorio actual y sus subdirectorios (usa `find`).

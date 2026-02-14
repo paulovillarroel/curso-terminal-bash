@@ -1,0 +1,73 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Sidebar from '../components/Sidebar.astro';
+import MobileNav from '../components/MobileNav.astro';
+import Hero from '../components/Hero.astro';
+import ModuleSection from '../components/ModuleSection.astro';
+import Footer from '../components/Footer.astro';
+import ScrollToTop from '../components/ScrollToTop.astro';
+
+import Module01 from '../content/module-01.mdx';
+import Module02 from '../content/module-02.mdx';
+import Module03 from '../content/module-03.mdx';
+import Module04 from '../content/module-04.mdx';
+import Module05 from '../content/module-05.mdx';
+import Module06 from '../content/module-06.mdx';
+import Module07 from '../content/module-07.mdx';
+import Module08 from '../content/module-08.mdx';
+import Module09 from '../content/module-09.mdx';
+import Exercises from '../content/exercises.mdx';
+---
+
+<Layout title="Curso de Terminal y Bash">
+  <Sidebar />
+  <MobileNav />
+
+  <main class="lg:ml-70 pt-14 lg:pt-0">
+    <Hero />
+
+    <ModuleSection id="modulo-1" title="Introducción" number="01">
+      <Module01 />
+    </ModuleSection>
+
+    <ModuleSection id="modulo-2" title="Primeros pasos y navegación" number="02" alternate>
+      <Module02 />
+    </ModuleSection>
+
+    <ModuleSection id="modulo-3" title="Archivos y directorios" number="03">
+      <Module03 />
+    </ModuleSection>
+
+    <ModuleSection id="modulo-4" title="Visualización, búsqueda y redirecciones" number="04" alternate>
+      <Module04 />
+    </ModuleSection>
+
+    <ModuleSection id="modulo-5" title="Editores de texto" number="05">
+      <Module05 />
+    </ModuleSection>
+
+    <ModuleSection id="modulo-6" title="Permisos y administración" number="06" alternate>
+      <Module06 />
+    </ModuleSection>
+
+    <ModuleSection id="modulo-7" title="Gestión de procesos" number="07">
+      <Module07 />
+    </ModuleSection>
+
+    <ModuleSection id="modulo-8" title="Bash scripting" number="08" alternate>
+      <Module08 />
+    </ModuleSection>
+
+    <ModuleSection id="modulo-9" title="Automatización con Cron" number="09">
+      <Module09 />
+    </ModuleSection>
+
+    <ModuleSection id="ejercicios" title="Ejercicios prácticos finales" alternate>
+      <Exercises />
+    </ModuleSection>
+
+    <Footer />
+  </main>
+
+  <ScrollToTop />
+</Layout>

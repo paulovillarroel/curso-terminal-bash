@@ -1,0 +1,596 @@
+import Callout from '../components/Callout.astro';
+
+Llegaste al final del curso. Estos ejercicios integradores combinan todo lo que has aprendido en los módulos anteriores. Son más complejos que los ejercicios de cada módulo, porque requieren usar múltiples habilidades juntas.
+
+Intenta resolver cada ejercicio por tu cuenta antes de ver la solución. Si te atascas, vuelve al módulo correspondiente para repasar. La práctica es la única forma de internalizar estos conocimientos.
+
+<Callout type="tip" title="Consejo antes de empezar">
+  Crea una carpeta `ejercicios-finales` en tu home para trabajar sin ensuciar otros directorios: `mkdir ~/ejercicios-finales && cd ~/ejercicios-finales`.
+</Callout>
+
+---
+
+### Ejercicio 1: Organizador de archivos por extensión
+
+**Contexto**: Imagina que tienes una carpeta de descargas llena de archivos mezclados: PDFs, imágenes, documentos, etc. Quieres organizarlos automáticamente en subcarpetas según su extensión.
+
+**Requisitos**:
+- El script recibe un directorio como argumento (o usa el actual por defecto).
+- Verifica que el directorio existe antes de continuar.
+- Crea una subcarpeta para cada extensión encontrada (txt, jpg, pdf, etc.).
+- Mueve cada archivo a su carpeta correspondiente.
+- Muestra un resumen de cuántos archivos movió.
+
+**Preparación** (para tener archivos de prueba):
+```bash
+mkdir ~/ejercicios-finales/descargas
+cd ~/ejercicios-finales/descargas
+touch informe.pdf datos.csv foto1.jpg foto2.jpg notas.txt resumen.pdf tabla.csv imagen.png
+```
+
+<details>
+<summary><strong>Ver solución</strong></summary>
+
+```bash title="organizador.sh"
+#!/bin/bash
+
+directorio="${1:-.}"
+
+if [ ! -d "$directorio" ]; then
+    echo "Error: '$directorio' no es un directorio válido"
+    exit 1
+fi
+
+cd "$directorio" || exit 1
+
+total=0
+
+for archivo in *.*; do
+    # Verificar que es un archivo (no una carpeta)
+    [ -f "$archivo" ] || continue
+
+    # Obtener la extensión
+    extension="${archivo##*.}"
+
+    # Crear la carpeta para esa extensión
+    mkdir -p "$extension"
+
+    # Mover el archivo
+    mv "$archivo" "$extension/"
+    echo "Movido: $archivo → $extension/"
+    ((total++))
+done
+
+echo ""
+echo "¡Organización completada! Se movieron $total archivos."
+```
+
+```bash
+chmod +x organizador.sh
+./organizador.sh ~/ejercicios-finales/descargas
+```
+
+</details>
+
+---
+
+### Ejercicio 2: Monitor de sistema con reporte
+
+**Contexto**: Necesitas un script que genere un reporte del estado de tu sistema, útil para enviar a alguien que te pregunte "¿cómo está el servidor?".
+
+**Requisitos**:
+- Mostrar: usuario actual, hostname, sistema operativo, fecha y hora.
+- Uso de disco del directorio home (en formato legible).
+- Cantidad de procesos en ejecución.
+- Memoria disponible (si el comando está disponible).
+- Los 5 procesos que más CPU consumen.
+- Guardar el reporte en un archivo con la fecha en el nombre.
+
+<details>
+<summary><strong>Ver solución</strong></summary>
+
+```bash title="monitor.sh"
+#!/bin/bash
+
+FECHA=$(date +%Y%m%d_%H%M%S)
+REPORTE="reporte_${FECHA}.txt"
+
+{
+    echo "========================================"
+    echo "   REPORTE DEL SISTEMA"
+    echo "   Generado: $(date '+%Y-%m-%d %H:%M:%S')"
+    echo "========================================"
+    echo ""
+    echo "--- Información general ---"
+    echo "Usuario: $(whoami)"
+    echo "Hostname: $(hostname)"
+    echo "Sistema: $(uname -s -r)"
+    echo ""
+    echo "--- Uso de disco (home) ---"
+    du -sh ~ 2>/dev/null
+    echo ""
+    echo "--- Espacio en disco ---"
+    df -h / 2>/dev/null
+    echo ""
+    echo "--- Procesos activos ---"
+    echo "Total: $(ps aux | wc -l) procesos"
+    echo ""
+    echo "--- Memoria ---"
+    free -h 2>/dev/null || echo "(comando free no disponible)"
+    echo ""
+    echo "--- Top 5 procesos por CPU ---"
+    ps aux --sort=-%cpu 2>/dev/null | head -6
+    echo ""
+    echo "========================================"
+} | tee "$REPORTE"
+
+echo ""
+echo "Reporte guardado en: $REPORTE"
+```
+
+</details>
+
+---
+
+### Ejercicio 3: Buscador de archivos grandes
+
+**Contexto**: Tu disco se está llenando y necesitas encontrar qué archivos están ocupando más espacio. Este script te ayuda a identificarlos rápidamente.
+
+**Requisitos**:
+- Recibe un directorio y un tamaño mínimo como argumentos.
+- Si no se proporcionan, usa valores por defecto razonables.
+- Lista los archivos que superen ese tamaño, ordenados de mayor a menor.
+- Muestra el tamaño en formato legible (MB, GB).
+- Al final muestra el total de archivos encontrados y el espacio total que ocupan.
+
+<details>
+<summary><strong>Ver solución</strong></summary>
+
+```bash title="archivos-grandes.sh"
+#!/bin/bash
+
+directorio="${1:-.}"
+tamano_min="${2:-10M}"
+
+if [ ! -d "$directorio" ]; then
+    echo "Error: '$directorio' no es un directorio válido"
+    echo "Uso: $0 [directorio] [tamaño-mínimo]"
+    echo "Ejemplo: $0 /home/usuario 50M"
+    exit 1
+fi
+
+echo "Buscando archivos mayores a $tamano_min en $directorio..."
+echo ""
+
+resultados=$(find "$directorio" -type f -size +$tamano_min -exec du -h {} + 2>/dev/null | sort -rh)
+
+if [ -z "$resultados" ]; then
+    echo "No se encontraron archivos mayores a $tamano_min"
+else
+    echo "TAMAÑO    ARCHIVO"
+    echo "------    -------"
+    echo "$resultados"
+    echo ""
+    total=$(echo "$resultados" | wc -l)
+    echo "Total: $total archivos encontrados"
+fi
+```
+
+```bash
+chmod +x archivos-grandes.sh
+./archivos-grandes.sh /home/usuario 50M
+```
+
+</details>
+
+---
+
+### Ejercicio 4: Respaldo automatizado con rotación
+
+**Contexto**: Necesitas un sistema de respaldo automático que se ejecute diariamente con cron, pero que no acumule respaldos infinitamente (o se llenará el disco).
+
+**Requisitos**:
+- Crea un respaldo comprimido (.tar.gz) de una carpeta específica.
+- El nombre del archivo incluye la fecha de creación.
+- Elimina automáticamente los respaldos de más de 30 días.
+- Registra todo en un archivo de log.
+- Incluye verificación de errores.
+- Configurar en cron para ejecutar diariamente a las 2 AM.
+
+<details>
+<summary><strong>Ver solución</strong></summary>
+
+```bash title="auto-respaldo.sh"
+#!/bin/bash
+
+# Configuración (modifica estas rutas según tu sistema)
+ORIGEN="/home/usuario/proyectos"
+DESTINO="/home/usuario/respaldos"
+FECHA=$(date +%Y%m%d)
+ARCHIVO="respaldo_${FECHA}.tar.gz"
+LOG="/home/usuario/respaldos/respaldo.log"
+DIAS_RETENER=30
+
+# Crear directorio de respaldo si no existe
+mkdir -p "$DESTINO"
+
+echo "$(date) - Iniciando respaldo..." >> "$LOG"
+
+# Verificar que el directorio origen existe
+if [ ! -d "$ORIGEN" ]; then
+    echo "$(date) - ERROR: '$ORIGEN' no existe" >> "$LOG"
+    exit 1
+fi
+
+# Crear respaldo
+tar -czf "${DESTINO}/${ARCHIVO}" "$ORIGEN" 2>> "$LOG"
+
+if [ $? -eq 0 ]; then
+    tamano=$(du -h "${DESTINO}/${ARCHIVO}" | cut -f1)
+    echo "$(date) - Respaldo creado: ${ARCHIVO} (${tamano})" >> "$LOG"
+else
+    echo "$(date) - ERROR al crear respaldo" >> "$LOG"
+    exit 1
+fi
+
+# Eliminar respaldos antiguos
+eliminados=$(find "$DESTINO" -name "respaldo_*.tar.gz" -mtime +$DIAS_RETENER -delete -print 2>/dev/null)
+if [ -n "$eliminados" ]; then
+    cantidad=$(echo "$eliminados" | wc -l)
+    echo "$(date) - Eliminados $cantidad respaldos antiguos" >> "$LOG"
+fi
+
+echo "$(date) - Respaldo completado exitosamente" >> "$LOG"
+echo "---" >> "$LOG"
+```
+
+```bash
+# Dar permisos y probar manualmente primero
+chmod +x auto-respaldo.sh
+./auto-respaldo.sh
+
+# Si funciona bien, agregar al cron
+crontab -e
+# Agregar: 0 2 * * * /home/usuario/scripts/auto-respaldo.sh
+```
+
+</details>
+
+---
+
+### Ejercicio 5: Gestor de notas en terminal
+
+**Contexto**: Quieres una forma rápida de tomar notas desde la terminal, sin abrir ningún otro programa. Este script te da un mini sistema de notas.
+
+**Requisitos**:
+- Menú interactivo con opciones: crear nota, listar notas, buscar en notas, ver una nota, eliminar nota.
+- Las notas se guardan como archivos individuales en una carpeta dedicada.
+- Cada nota tiene fecha de creación en el nombre del archivo.
+- La búsqueda funciona por contenido (grep).
+- Al eliminar, pide confirmación antes de borrar.
+
+<details>
+<summary><strong>Ver solución</strong></summary>
+
+```bash title="notas.sh"
+#!/bin/bash
+
+DIRECTORIO="$HOME/mis-notas"
+mkdir -p "$DIRECTORIO"
+
+crear_nota() {
+    read -p "Título de la nota: " titulo
+
+    if [ -z "$titulo" ]; then
+        echo "El título no puede estar vacío"
+        return
+    fi
+
+    # Convertir espacios a guiones para el nombre de archivo
+    nombre=$(echo "$titulo" | tr ' ' '-' | tr '[:upper:]' '[:lower:]')
+    fecha=$(date +%Y%m%d_%H%M%S)
+    archivo="${DIRECTORIO}/${fecha}_${nombre}.txt"
+
+    echo "Escribe el contenido (termina con una línea vacía):"
+    contenido=""
+    while IFS= read -r linea; do
+        [ -z "$linea" ] && break
+        contenido="${contenido}${linea}\n"
+    done
+
+    printf "# %s\n# Fecha: %s\n\n%b" "$titulo" "$(date)" "$contenido" > "$archivo"
+    echo ""
+    echo "Nota guardada: $(basename "$archivo")"
+}
+
+listar_notas() {
+    echo ""
+    echo "=== TUS NOTAS ==="
+
+    archivos=$(ls "$DIRECTORIO"/*.txt 2>/dev/null)
+    if [ -z "$archivos" ]; then
+        echo "No hay notas todavía. Crea una con la opción 1."
+        return
+    fi
+
+    for nota in "$DIRECTORIO"/*.txt; do
+        nombre=$(basename "$nota")
+        titulo=$(head -1 "$nota" | sed 's/^# //')
+        echo "  - $nombre"
+        echo "    $titulo"
+    done
+}
+
+ver_nota() {
+    listar_notas
+    echo ""
+    read -p "Nombre del archivo a ver: " archivo
+
+    if [ -f "$DIRECTORIO/$archivo" ]; then
+        echo ""
+        echo "---"
+        cat "$DIRECTORIO/$archivo"
+        echo "---"
+    else
+        echo "Archivo no encontrado."
+    fi
+}
+
+buscar_notas() {
+    read -p "Buscar: " termino
+
+    if [ -z "$termino" ]; then
+        echo "Ingresa un término de búsqueda"
+        return
+    fi
+
+    echo ""
+    echo "Resultados para '$termino':"
+    resultados=$(grep -rl "$termino" "$DIRECTORIO" 2>/dev/null)
+
+    if [ -z "$resultados" ]; then
+        echo "  No se encontraron coincidencias."
+        return
+    fi
+
+    echo "$resultados" | while read -r archivo; do
+        echo "  $(basename "$archivo"):"
+        grep -n "$termino" "$archivo" | head -3 | sed 's/^/     /'
+    done
+}
+
+eliminar_nota() {
+    listar_notas
+    echo ""
+    read -p "Nombre del archivo a eliminar: " archivo
+
+    if [ -f "$DIRECTORIO/$archivo" ]; then
+        read -p "¿Estás seguro de eliminar '$archivo'? (s/n): " confirmar
+        if [ "$confirmar" = "s" ]; then
+            rm "$DIRECTORIO/$archivo"
+            echo "Nota eliminada."
+        else
+            echo "Cancelado."
+        fi
+    else
+        echo "Archivo no encontrado."
+    fi
+}
+
+# Menú principal
+echo "=== GESTOR DE NOTAS ==="
+echo "Directorio: $DIRECTORIO"
+
+while true; do
+    echo ""
+    echo "-------------------"
+    echo "1) Crear nota"
+    echo "2) Listar notas"
+    echo "3) Ver una nota"
+    echo "4) Buscar en notas"
+    echo "5) Eliminar nota"
+    echo "6) Salir"
+    read -p "Opción: " opcion
+
+    case $opcion in
+        1) crear_nota ;;
+        2) listar_notas ;;
+        3) ver_nota ;;
+        4) buscar_notas ;;
+        5) eliminar_nota ;;
+        6) echo "¡Hasta luego!"; exit 0 ;;
+        *) echo "Opción no válida. Elige entre 1 y 6." ;;
+    esac
+done
+```
+
+</details>
+
+---
+
+### Ejercicio 6: Analizador de logs
+
+**Contexto**: En ciencia de datos, frecuentemente necesitas analizar archivos de texto para extraer patrones. Este ejercicio simula el análisis de un archivo de log de un servidor web.
+
+**Requisitos**:
+- Primero, genera un archivo de log de ejemplo (se proporciona el comando).
+- Crea un script que analice el log y muestre: total de líneas, cantidad de errores (ERROR), cantidad de advertencias (WARNING), las 5 líneas de error más recientes.
+- Guarda el resumen en un archivo de reporte.
+
+**Preparación**:
+```bash
+# Generar un log de ejemplo
+for i in {1..50}; do
+  nivel=$((RANDOM % 3))
+  case $nivel in
+    0) echo "$(date -d "-$((RANDOM % 100)) minutes" '+%Y-%m-%d %H:%M:%S') [INFO] Operación completada correctamente" ;;
+    1) echo "$(date -d "-$((RANDOM % 100)) minutes" '+%Y-%m-%d %H:%M:%S') [WARNING] Uso de memoria alto: $((RANDOM % 50 + 50))%" ;;
+    2) echo "$(date -d "-$((RANDOM % 100)) minutes" '+%Y-%m-%d %H:%M:%S') [ERROR] Conexión rechazada desde 192.168.1.$((RANDOM % 255))" ;;
+  esac
+done > ejemplo.log
+```
+
+<details>
+<summary><strong>Ver solución</strong></summary>
+
+```bash title="analizar-log.sh"
+#!/bin/bash
+
+archivo="${1:-ejemplo.log}"
+reporte="analisis_$(date +%Y%m%d_%H%M%S).txt"
+
+if [ ! -f "$archivo" ]; then
+    echo "Error: '$archivo' no existe"
+    echo "Uso: $0 <archivo-de-log>"
+    exit 1
+fi
+
+{
+    echo "=== ANÁLISIS DE LOG ==="
+    echo "Archivo: $archivo"
+    echo "Fecha del análisis: $(date)"
+    echo ""
+
+    total=$(wc -l < "$archivo")
+    info=$(grep -c "\[INFO\]" "$archivo")
+    warnings=$(grep -c "\[WARNING\]" "$archivo")
+    errores=$(grep -c "\[ERROR\]" "$archivo")
+
+    echo "--- Resumen ---"
+    echo "Total de líneas: $total"
+    echo "INFO:    $info"
+    echo "WARNING: $warnings"
+    echo "ERROR:   $errores"
+    echo ""
+
+    echo "--- Últimos 5 errores ---"
+    grep "\[ERROR\]" "$archivo" | tail -5
+    echo ""
+
+    echo "--- Últimas 5 advertencias ---"
+    grep "\[WARNING\]" "$archivo" | tail -5
+    echo ""
+
+    echo "========================"
+} | tee "$reporte"
+
+echo ""
+echo "Reporte guardado en: $reporte"
+```
+
+</details>
+
+---
+
+### Ejercicio 7: Creador de proyectos
+
+**Contexto**: Cada vez que empiezas un proyecto nuevo de ciencia de datos, necesitas crear la misma estructura de carpetas. Automatiza este proceso.
+
+**Requisitos**:
+- Recibe el nombre del proyecto como argumento.
+- Crea una estructura estándar: `data/raw`, `data/processed`, `notebooks`, `scripts`, `output`.
+- Crea archivos iniciales: `README.md` con el nombre del proyecto, `.gitignore` con patrones comunes, y un script `setup.sh` vacío.
+- Muestra la estructura creada con `tree` (o con `find` si tree no está instalado).
+
+<details>
+<summary><strong>Ver solución</strong></summary>
+
+```bash title="crear-proyecto.sh"
+#!/bin/bash
+
+nombre="${1}"
+
+if [ -z "$nombre" ]; then
+    read -p "Nombre del proyecto: " nombre
+fi
+
+if [ -z "$nombre" ]; then
+    echo "Error: necesitas proporcionar un nombre de proyecto"
+    exit 1
+fi
+
+if [ -d "$nombre" ]; then
+    echo "Error: ya existe una carpeta llamada '$nombre'"
+    exit 1
+fi
+
+echo "Creando proyecto '$nombre'..."
+
+# Crear estructura de directorios
+mkdir -p "$nombre"/{data/{raw,processed},notebooks,scripts,output}
+
+# Crear README.md
+cat > "$nombre/README.md" << EOF
+# $nombre
+
+Proyecto de ciencia de datos.
+
+## Estructura
+
+- \`data/raw/\` — Datos crudos (no modificar)
+- \`data/processed/\` — Datos procesados
+- \`notebooks/\` — Jupyter notebooks
+- \`scripts/\` — Scripts de procesamiento
+- \`output/\` — Resultados y gráficos
+
+## Fecha de creación
+
+$(date '+%Y-%m-%d')
+EOF
+
+# Crear .gitignore
+cat > "$nombre/.gitignore" << EOF
+# Datos grandes
+data/raw/*.csv
+data/raw/*.xlsx
+*.zip
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Output
+output/*.png
+output/*.pdf
+EOF
+
+# Crear script inicial
+cat > "$nombre/scripts/setup.sh" << EOF
+#!/bin/bash
+echo "Configurando entorno para $nombre..."
+# Agrega aquí los comandos de configuración
+EOF
+chmod +x "$nombre/scripts/setup.sh"
+
+# Mostrar resultado
+echo ""
+echo "Proyecto creado exitosamente:"
+if command -v tree &>/dev/null; then
+    tree "$nombre"
+else
+    find "$nombre" -type f -o -type d | sort
+fi
+```
+
+</details>
+
+---
+
+<Callout type="tip" title="¿Qué sigue después?">
+  Si completaste estos ejercicios, tienes una base sólida en terminal y Bash. Los siguientes pasos naturales en tu camino de ciencia de datos son:
+
+  - **Git**: Control de versiones para tus proyectos. Se usa enteramente desde la terminal.
+  - **SSH**: Conectarte a servidores remotos para procesar datos.
+  - **Docker**: Contenedores para reproducir entornos de análisis.
+  - **Python/R desde la terminal**: Ejecutar scripts de análisis directamente.
+
+  Recuerda que este curso forma parte del programa de <a href="https://hazlacondatos.com/" target="_blank" rel="noopener noreferrer" class="text-blue-600 dark:text-blue-400 hover:underline font-semibold">Hazla con Datos</a>. Sigue aprendiendo con los otros cursos del programa.
+</Callout>

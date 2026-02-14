@@ -1,0 +1,264 @@
+import Callout from '../components/Callout.astro';
+import CommandTable from '../components/CommandTable.astro';
+
+En el módulo anterior aprendiste a crear y mover archivos. Ahora vas a aprender a **ver lo que hay dentro** de esos archivos, a buscar texto específico y a conectar comandos entre sí. Estas habilidades son las que realmente hacen poderosa a la terminal.
+
+### Ver el contenido de un archivo: `cat`
+
+El comando más simple para ver el contenido de un archivo es `cat` (de "concatenate"). Muestra todo el contenido de una vez en la pantalla:
+
+```bash
+cat notas.txt
+```
+
+`cat` funciona bien para archivos cortos. Pero si el archivo tiene cientos o miles de líneas, el texto pasará tan rápido que no podrás leerlo. Para esos casos, hay mejores opciones.
+
+### Navegar archivos largos: `less`
+
+Cuando necesitas leer un archivo largo, `less` te permite navegar página por página, como un visor de documentos:
+
+```bash
+less archivo-largo.txt
+```
+
+Dentro de `less`, usas estas teclas para moverte:
+
+| Tecla | Acción |
+|-------|--------|
+| **Espacio** | Avanzar una página |
+| **b** | Retroceder una página |
+| **Flecha arriba/abajo** | Mover línea por línea |
+| **/texto** | Buscar "texto" hacia adelante |
+| **n** | Ir a la siguiente coincidencia de búsqueda |
+| **q** | Salir de less |
+
+<Callout type="tip" title="less es tu visor de archivos">
+  Piensa en `less` como el equivalente a abrir un archivo con un visor de texto. Es perfecto para archivos de configuración, logs, o cualquier archivo que no necesitas editar, solo leer. Cuando termines de leer, presiona **q** para salir.
+</Callout>
+
+### Ver solo el inicio o el final: `head` y `tail`
+
+A veces no necesitas ver todo el archivo, solo las primeras o las últimas líneas. Para eso existen `head` y `tail`:
+
+```bash
+# Ver las primeras 10 líneas (por defecto)
+head archivo.txt
+
+# Ver las primeras 20 líneas
+head -n 20 datos.csv
+
+# Ver las últimas 10 líneas
+tail archivo.txt
+
+# Ver las últimas 5 líneas
+tail -n 5 log.txt
+```
+
+`tail` tiene un truco especialmente útil: el flag `-f` (de "follow") te permite **monitorear un archivo en tiempo real**. Cada vez que se agrega una nueva línea al archivo, aparece automáticamente en tu pantalla. Esto es invaluable para monitorear logs:
+
+```bash
+# Monitorear un archivo de log en tiempo real
+tail -f /var/log/syslog
+
+# Presiona Ctrl+C para dejar de monitorear
+```
+
+### Contar líneas, palabras y caracteres: `wc`
+
+El comando `wc` (de "word count") cuenta las líneas, palabras y caracteres de un archivo:
+
+```bash
+wc archivo.txt
+#  42  318 1847 archivo.txt
+# (42 líneas, 318 palabras, 1847 caracteres)
+
+# Si solo te interesa la cantidad de líneas
+wc -l archivo.txt
+```
+
+<CommandTable commands={[
+  { command: "cat archivo", description: "Muestra todo el contenido del archivo" },
+  { command: "less archivo", description: "Visor paginado (navegar con flechas, salir con q)" },
+  { command: "head archivo", description: "Muestra las primeras 10 líneas" },
+  { command: "head -n 20 archivo", description: "Muestra las primeras 20 líneas" },
+  { command: "tail archivo", description: "Muestra las últimas 10 líneas" },
+  { command: "tail -f archivo", description: "Monitorea el archivo en tiempo real (Ctrl+C para salir)" },
+  { command: "wc archivo", description: "Cuenta líneas, palabras y caracteres" },
+  { command: "wc -l archivo", description: "Cuenta solo las líneas" },
+]} />
+
+### Buscar texto dentro de archivos: `grep`
+
+`grep` es uno de los comandos más útiles que vas a aprender. Te permite buscar una palabra o patrón de texto dentro de uno o varios archivos. Su nombre viene de "Global Regular Expression Print", pero no te preocupes por eso: piensa en `grep` como "buscar texto".
+
+La sintaxis básica es `grep "lo que buscas" dónde buscas`:
+
+```bash
+# Buscar la palabra "error" en un archivo de log
+grep "error" log.txt
+
+# La terminal mostrará todas las líneas que contengan "error"
+```
+
+Ahora veamos las opciones más útiles de grep, una por una:
+
+```bash
+# Ignorar mayúsculas/minúsculas (-i)
+# Encuentra "Error", "ERROR", "error", etc.
+grep -i "error" log.txt
+
+# Mostrar el número de línea donde aparece (-n)
+grep -n "error" log.txt
+# 23: [2024-01-15] error de conexión
+# 47: [2024-01-15] error de timeout
+
+# Buscar en todos los archivos de una carpeta, recursivamente (-r)
+grep -r "TODO" ./src/
+
+# Mostrar líneas que NO contienen el texto (-v)
+# Útil para filtrar: "todo excepto las líneas de debug"
+grep -v "debug" log.txt
+
+# Contar cuántas veces aparece (-c)
+grep -c "error" log.txt
+# 15
+
+# Solo mostrar los nombres de archivo que contienen el texto (-l)
+grep -rl "password" ./config/
+```
+
+<CommandTable commands={[
+  { command: "grep 'texto' archivo", description: "Buscar texto en un archivo" },
+  { command: "grep -i", description: "Buscar sin distinguir mayúsculas/minúsculas" },
+  { command: "grep -n", description: "Mostrar números de línea" },
+  { command: "grep -r", description: "Buscar en todos los archivos de una carpeta" },
+  { command: "grep -v", description: "Mostrar líneas que NO contienen el texto" },
+  { command: "grep -c", description: "Contar coincidencias" },
+  { command: "grep -l", description: "Solo mostrar nombres de archivos con coincidencias" },
+]} />
+
+<Callout type="info" title="grep y ciencia de datos">
+  Si trabajas con archivos CSV o datos tabulares, `grep` te permite filtrar filas rápidamente. Por ejemplo, `grep "Chile" datos.csv` te muestra solo las filas que mencionan a Chile. No reemplaza a pandas o R, pero para revisiones rápidas es muy práctico.
+</Callout>
+
+### Pipes (tuberías): conectar comandos con `|`
+
+Aquí es donde la terminal se vuelve realmente poderosa. El **pipe** (representado por el símbolo `|`) toma la salida de un comando y la pasa como entrada al siguiente. Piensa en él como una tubería que conecta la salida de una herramienta con la entrada de otra.
+
+Imagina que tienes una lista de 1000 archivos y quieres encontrar solo los que contienen "datos". Sin pipes, tendrías que guardar la lista en un archivo, luego buscar en ese archivo. Con pipes, lo haces en una sola línea:
+
+```bash
+# Sin pipes (engorroso)
+ls > lista.txt
+grep "datos" lista.txt
+rm lista.txt
+
+# Con pipes (una sola línea)
+ls | grep "datos"
+```
+
+Algunos ejemplos prácticos que usarás frecuentemente:
+
+```bash
+# Listar archivos y filtrar por nombre
+ls -la | grep ".txt"
+
+# Contar cuántos archivos hay en el directorio
+ls | wc -l
+
+# Ver procesos y buscar uno específico
+ps aux | grep "python"
+
+# Ver el historial y buscar un comando
+history | grep "git"
+
+# Ordenar líneas de un archivo y eliminar duplicados
+cat nombres.txt | sort | uniq
+```
+
+Fíjate cómo puedes encadenar varios pipes. Cada `|` pasa el resultado al siguiente comando. Es como una línea de ensamblaje: cada estación hace una tarea y pasa el resultado a la siguiente.
+
+<Callout type="info" title="La filosofía Unix">
+  La terminal está diseñada con una idea simple: cada comando hace UNA cosa bien. Los pipes permiten combinar estos comandos pequeños para resolver problemas complejos. Es como tener piezas de LEGO: cada pieza es simple, pero juntas puedes construir lo que quieras.
+</Callout>
+
+### Redirecciones: guardar la salida en archivos
+
+Los pipes conectan comandos entre sí. Las **redirecciones** envían la salida de un comando a un **archivo** en vez de mostrarla en pantalla. Hay dos tipos principales:
+
+`>` (mayor que) envía la salida a un archivo. Si el archivo existe, **lo sobreescribe** (borra lo anterior):
+
+```bash
+# Guardar el listado de archivos en un archivo
+ls -la > listado.txt
+
+# Guardar la fecha actual
+date > fecha.txt
+```
+
+<Callout type="warning" title="Cuidado con >">
+  El operador `>` **sobreescribe** el archivo sin preguntar. Si ya tenías contenido importante en ese archivo, se perderá. Siempre verifica que no estés sobreescribiendo algo que necesitas.
+</Callout>
+
+`>>` (doble mayor que) **agrega** al final del archivo, sin borrar lo que ya tenía:
+
+```bash
+# Agregar una línea al final
+echo "primera línea" > notas.txt
+echo "segunda línea" >> notas.txt
+echo "tercera línea" >> notas.txt
+
+# Ahora notas.txt tiene las tres líneas
+cat notas.txt
+```
+
+También puedes redirigir los **mensajes de error** por separado:
+
+| Operador | Función | Ejemplo |
+|----------|---------|---------|
+| `>` | Redirigir salida a archivo (sobreescribe) | `echo "hola" > saludo.txt` |
+| `>>` | Redirigir salida a archivo (añade al final) | `echo "adiós" >> saludo.txt` |
+| `2>` | Redirigir solo errores a archivo | `comando 2> errores.log` |
+| `&>` | Redirigir todo (salida + errores) a archivo | `comando &> todo.log` |
+| `2>/dev/null` | Descartar errores (no mostrarlos) | `find / -name "*.conf" 2>/dev/null` |
+
+El último ejemplo es muy útil: `/dev/null` es un "agujero negro" donde puedes enviar lo que no te interesa. Si un comando produce muchos mensajes de error que no necesitas ver, los rediriges a `/dev/null`:
+
+```bash
+# find muestra errores de "permiso denegado" en muchas carpetas
+# Con 2>/dev/null solo vemos los resultados útiles
+find / -name "*.conf" 2>/dev/null
+```
+
+### Combinando todo: ejemplos del mundo real
+
+Ahora que conoces pipes y redirecciones, veamos cómo se combinan para resolver problemas reales:
+
+```bash
+# Encontrar los 5 archivos más grandes del directorio
+du -sh * | sort -rh | head -5
+
+# Buscar errores recientes en un log y guardarlos
+grep -i "error" /var/log/syslog | tail -20 > errores-recientes.txt
+
+# Contar cuántas líneas tiene cada archivo .txt
+wc -l *.txt
+
+# Ver las 10 palabras más frecuentes en un archivo
+cat texto.txt | tr ' ' '\n' | sort | uniq -c | sort -rn | head -10
+```
+
+No te preocupes si el último ejemplo parece complejo. El punto es que puedes construir soluciones paso a paso, agregando un pipe a la vez. Primero prueba el primer comando, luego agrega un pipe y el segundo, y así sucesivamente.
+
+### Ejercicios del módulo
+
+1. Crea un archivo con `echo "Línea 1" > prueba.txt`, luego agrega "Línea 2" y "Línea 3" usando `>>`. Verifica con `cat prueba.txt`.
+2. Usa `head -n 1 prueba.txt` y `tail -n 1 prueba.txt`. ¿Qué línea muestra cada uno?
+3. Usa `wc -l prueba.txt` para contar las líneas del archivo. ¿Coincide con lo que esperabas?
+4. Ejecuta `ls /usr/bin | wc -l` para contar cuántos programas hay instalados en tu sistema.
+5. Usa `ls /usr/bin | grep "python"` para ver si tienes Python instalado. ¿Aparece algo?
+6. Guarda el resultado de `ls -la ~` en un archivo llamado `mi-home.txt` usando `>`. Luego abre el archivo con `less mi-home.txt`.
+7. Ejecuta `history | grep "cd"` para ver todos los comandos `cd` que has usado en esta sesión.
+8. Crea un archivo con varias líneas: `echo -e "banana\nmanzana\nnaranja\nbanana\nmanzana"  > frutas.txt`. Luego usa `sort frutas.txt | uniq` para ver las frutas sin duplicados.
+9. Usa `grep -c "banana" frutas.txt` para contar cuántas veces aparece "banana".
+10. **Desafío**: Usa `cat frutas.txt | sort | uniq -c | sort -rn` para ver cuál es la fruta más frecuente. ¿Qué hace cada parte del comando?

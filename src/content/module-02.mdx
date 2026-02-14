@@ -1,0 +1,209 @@
+import Callout from '../components/Callout.astro';
+import CommandTable from '../components/CommandTable.astro';
+
+### Tus primeros comandos
+
+Ahora que ya sabes abrir la terminal y ejecutar un comando, vamos a conocer algunos comandos básicos que te ayudarán a orientarte. Piensa en estos como las primeras palabras que aprendes en un idioma nuevo.
+
+El comando `echo` ya lo conoces: repite lo que le escribas. Pero hay otros igual de sencillos:
+
+```bash
+echo "Hola mundo"     # Imprime texto en pantalla
+whoami                 # Muestra tu nombre de usuario
+date                   # Muestra la fecha y hora actual
+cal                    # Muestra el calendario del mes
+clear                  # Limpia la pantalla (o Ctrl+L)
+```
+
+Prueba cada uno de estos comandos en tu terminal. No necesitas memorizarlos, solo familiarízate con la idea de que cada comando tiene un nombre corto y hace una tarea específica. Con el tiempo los irás recordando de forma natural.
+
+<Callout type="tip" title="Atajo útil">
+  Puedes usar `Ctrl + L` para limpiar la pantalla rápidamente, en lugar de escribir `clear`. Este atajo funciona en casi todas las terminales y lo usarás todo el tiempo.
+</Callout>
+
+### El sistema de archivos: cómo se organiza todo
+
+Antes de aprender a moverte por el sistema, necesitas entender cómo está organizado. En tu computador, los archivos están guardados dentro de carpetas (también llamadas **directorios**), y esas carpetas pueden contener otras carpetas, formando una estructura como un árbol invertido.
+
+En Linux y macOS, todo parte de un directorio raíz llamado `/` (una barra diagonal). Desde ahí se ramifica todo lo demás:
+
+```
+/
+├── home/          # Aquí viven los directorios de cada usuario
+│   └── tu-usuario/
+│       ├── Documentos/
+│       ├── Descargas/
+│       └── ...
+├── etc/           # Archivos de configuración del sistema
+├── var/           # Datos variables (logs, bases de datos)
+├── tmp/           # Archivos temporales
+└── usr/           # Programas instalados
+```
+
+Lo más importante para ti ahora es la carpeta **home** (representada por `~`). Es tu espacio personal dentro del sistema. Cuando abres la terminal, normalmente empiezas ahí. Es como tu escritorio, pero en la terminal.
+
+### Saber dónde estás: `pwd`
+
+Cuando navegas por carpetas en la interfaz gráfica, puedes ver en qué carpeta estás mirando la barra de direcciones. En la terminal, usas el comando `pwd` (que significa "print working directory", o "imprime el directorio de trabajo"):
+
+```bash
+pwd
+# /home/tu-usuario
+```
+
+Este comando es tu brújula. Cada vez que te sientas perdido, escribe `pwd` y sabrás exactamente dónde estás.
+
+### Ver qué hay alrededor: `ls`
+
+Una vez que sabes dónde estás, querrás ver qué archivos y carpetas hay en ese lugar. Para eso usas `ls` (de "list"):
+
+```bash
+# Ver qué hay en el directorio actual
+ls
+
+# Ver con más detalle (permisos, tamaño, fecha)
+ls -l
+
+# Incluir archivos ocultos (los que empiezan con un punto)
+ls -la
+
+# Tamaños en formato legible (KB, MB, GB en vez de bytes)
+ls -lh
+```
+
+¿Qué son los archivos ocultos? En Linux, cualquier archivo o carpeta cuyo nombre empiece con un punto (`.`) está oculto por defecto. Estos suelen ser archivos de configuración. Por ejemplo, `.bashrc` es el archivo de configuración de Bash. El flag `-a` le dice a `ls` que los muestre también.
+
+<Callout type="info" title="¿Qué son los flags?">
+  Los flags (o banderas) son opciones que modifican el comportamiento de un comando. Se escriben con un guión antes de una letra: `-l`, `-a`, `-h`. Puedes combinarlos: `ls -la` es lo mismo que `ls -l -a`. Cada comando tiene sus propios flags; no necesitas aprenderlos todos, solo los más útiles.
+</Callout>
+
+### Moverse entre carpetas: `cd`
+
+Para entrar a una carpeta, usas `cd` (de "change directory"). Para salir, usas `cd ..` (los dos puntos significan "el directorio de arriba"):
+
+<CommandTable commands={[
+  { command: "cd carpeta", description: "Entra a un directorio" },
+  { command: "cd ..", description: "Sube un nivel (al directorio padre)" },
+  { command: "cd ~", description: "Ir al directorio home, sin importar dónde estés" },
+  { command: "cd -", description: "Volver al directorio donde estabas antes" },
+  { command: "cd /", description: "Ir al directorio raíz del sistema" },
+]} />
+
+Vamos a practicar la navegación paso a paso:
+
+```bash
+# Primero, veamos dónde estamos
+pwd
+# /home/tu-usuario
+
+# ¿Qué hay aquí?
+ls
+# Documentos  Descargas  Escritorio  Imágenes
+
+# Entremos a Documentos
+cd Documentos
+
+# Verificamos que nos movimos
+pwd
+# /home/tu-usuario/Documentos
+
+# Subimos un nivel (volvemos a home)
+cd ..
+
+# Verificamos
+pwd
+# /home/tu-usuario
+
+# Vamos directo al home desde cualquier lugar
+cd ~
+```
+
+### Rutas absolutas vs relativas
+
+Hay dos formas de decirle a la terminal a qué carpeta quieres ir. Entender la diferencia es importante porque la usarás en todo momento.
+
+Una **ruta absoluta** empieza siempre desde la raíz `/`. Es como dar una dirección completa: "Chile, Santiago, calle X, número Y". No importa dónde estés, la ruta absoluta siempre te lleva al mismo lugar:
+
+```bash
+cd /home/usuario/Documentos/proyecto
+```
+
+Una **ruta relativa** empieza desde donde tú estás ahora. Es como decir "la tienda de la esquina": depende de dónde te encuentres en ese momento:
+
+```bash
+# Si estás en /home/usuario, esto te lleva a /home/usuario/Documentos/proyecto
+cd Documentos/proyecto
+
+# Los dos puntos (..) significan "sube un nivel"
+cd ../otro-proyecto
+```
+
+<Callout type="tip" title="¿Cuándo usar cada una?">
+  Usa rutas **relativas** para moverte entre carpetas cercanas (es más corto de escribir). Usa rutas **absolutas** cuando quieras ir a un lugar específico sin importar dónde estés, o dentro de scripts para evitar errores.
+</Callout>
+
+### Símbolos especiales de ruta
+
+Estos símbolos los usarás constantemente. Vale la pena entenderlos bien:
+
+| Símbolo | Significado | Ejemplo |
+|---------|-------------|---------|
+| `.` | El directorio donde estás ahora | `./script.sh` (ejecutar algo aquí) |
+| `..` | El directorio de arriba (padre) | `cd ..` (subir un nivel) |
+| `~` | Tu directorio home | `cd ~` (ir a casa) |
+| `/` | La raíz del sistema (el punto más alto) | `cd /` |
+| `-` | El directorio anterior (solo con `cd`) | `cd -` (ir y volver) |
+
+### Autocompletado con Tab: tu mejor herramienta
+
+Si hay un truco que debes aprender de este curso, es este: **la tecla Tab autocompleta nombres**. No necesitas escribir nombres completos de archivos o carpetas. Escribe las primeras letras y presiona Tab; la terminal completa el resto por ti.
+
+```bash
+# Escribe "cd Doc" y presiona Tab
+cd Doc⇥  # Se completa a: cd Documentos/
+
+# Si hay varias opciones que empiezan igual, presiona Tab dos veces
+# y la terminal te muestra todas las posibilidades
+cd D⇥⇥
+# Descargas/  Documentos/  Desktop/
+```
+
+Esto no solo te ahorra tiempo: **evita errores de escritura**. Si Tab no completa nada, probablemente el archivo o carpeta no existe, o escribiste mal las primeras letras.
+
+<Callout type="tip" title="Usa Tab obsesivamente">
+  Los usuarios experimentados de terminal presionan Tab después de cada 2-3 letras. Es un hábito que deberías adoptar desde ahora. Te ahorrará cientos de errores y mucho tiempo.
+</Callout>
+
+### Historial de comandos
+
+La terminal recuerda todos los comandos que has escrito. Esto es increíblemente útil porque rara vez necesitas escribir un comando desde cero:
+
+- **Flecha arriba**: Muestra el comando anterior. Sigue presionando para ir más atrás.
+- **Flecha abajo**: Vuelve hacia comandos más recientes.
+- `history`: Muestra el historial completo de comandos.
+- `Ctrl + R`: Busca un comando en el historial. Escribes parte del comando y te encuentra la coincidencia.
+- `!!`: Repite exactamente el último comando.
+
+```bash
+# Ver los últimos 10 comandos que ejecutaste
+history | tail -10
+
+# Buscar un comando que usaste antes
+# Presiona Ctrl+R, escribe parte del comando (ej: "git") y aparecerá
+```
+
+<Callout type="info" title="Ctrl+R es mágico">
+  Imagina que hace una hora escribiste un comando largo y complicado. En lugar de recordarlo letra por letra, presionas `Ctrl + R`, escribes unas pocas letras que recuerdas, y la terminal lo encuentra por ti. Es uno de los atajos más útiles que existen.
+</Callout>
+
+### Ejercicios del módulo
+
+Practica cada uno de estos ejercicios en tu terminal:
+
+1. Ejecuta `whoami`, `date` y `cal` uno por uno. ¿Qué te muestra cada uno?
+2. Usa `pwd` para ver dónde estás. Luego usa `ls` para ver qué hay en tu directorio home.
+3. Usa `ls -la` y compara con `ls`. ¿Qué archivos nuevos aparecen? (Pista: busca los que empiezan con punto)
+4. Navega a una carpeta cualquiera con `cd`, luego usa `pwd` para confirmar dónde estás. Vuelve al home con `cd ~`.
+5. Practica el autocompletado: escribe `cd` seguido de las primeras 2 letras de una carpeta y presiona Tab. ¿Se completó?
+6. Ejecuta `history` y mira los comandos que has escrito en esta sesión. Luego presiona `Ctrl + R` y busca el comando `date`.
+7. Navega a `/tmp` con ruta absoluta, luego vuelve a tu home con `cd ~`. Ahora usa `cd -`. ¿A dónde te lleva?

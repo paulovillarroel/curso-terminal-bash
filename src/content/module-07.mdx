@@ -1,0 +1,209 @@
+import Callout from '../components/Callout.astro';
+import CommandTable from '../components/CommandTable.astro';
+
+### ¿Qué es un proceso?
+
+Cada vez que ejecutas un comando o abres un programa, el sistema crea un **proceso**. Un proceso es simplemente un programa en ejecución. Tu navegador es un proceso, tu terminal es un proceso, e incluso cada comando que ejecutas crea un proceso temporalmente.
+
+Cada proceso tiene un número identificador único llamado **PID** (Process ID). Este número es importante porque lo necesitarás si alguna vez necesitas detener un programa que se quedó colgado.
+
+### Ver los procesos activos: `ps`
+
+El comando `ps` (de "process status") te muestra los procesos en ejecución. Por sí solo muestra solo los procesos de tu terminal actual, pero con los flags `aux` muestra **todos** los procesos del sistema:
+
+```bash
+# Ver solo los procesos de tu terminal
+ps
+
+# Ver TODOS los procesos del sistema con detalle
+ps aux
+```
+
+La salida de `ps aux` tiene mucha información. Veamos qué significa cada columna:
+
+```bash title="Salida de ps aux"
+USER       PID %CPU %MEM    VSZ   RSS TTY  STAT START   TIME COMMAND
+root         1  0.0  0.1 169316 13092 ?    Ss   10:00   0:02 /sbin/init
+paulo     1234  2.5  1.2 987456 98765 ?    Sl   10:05   1:30 node server.js
+paulo     5678  0.0  0.0  12345  6789 pts/0 S    10:30   0:00 bash
+```
+
+| Columna | Significado |
+|---------|-------------|
+| **USER** | Quién ejecutó el proceso |
+| **PID** | El número identificador del proceso |
+| **%CPU** | Cuánto procesador está usando (porcentaje) |
+| **%MEM** | Cuánta memoria está usando (porcentaje) |
+| **COMMAND** | El comando o programa que se ejecutó |
+
+En la práctica, rara vez leerás toda la lista. Normalmente combinas `ps` con `grep` para buscar un proceso específico:
+
+```bash
+# ¿Está corriendo Python?
+ps aux | grep "python"
+
+# ¿Hay algún servidor Node.js activo?
+ps aux | grep "node"
+```
+
+### Monitor en tiempo real: `top` y `htop`
+
+Mientras `ps` te muestra una foto instantánea, `top` te muestra los procesos **en tiempo real**, actualizándose cada pocos segundos. Es como el Administrador de Tareas de Windows o el Monitor de Actividad de macOS, pero en la terminal:
+
+```bash
+# Monitor básico (viene preinstalado en todos los sistemas)
+top
+
+# Para salir de top, presiona q
+```
+
+Sin embargo, `top` es difícil de leer. **htop** es una versión mejorada con colores, barras visuales y mejor navegación:
+
+```bash
+# Instalar htop
+sudo apt install htop    # Debian/Ubuntu/WSL
+brew install htop        # macOS
+
+# Ejecutar htop
+htop
+```
+
+<Callout type="tip" title="htop es mucho mejor que top">
+  Si puedes instalar `htop`, hazlo. Muestra el uso de CPU y memoria con barras de colores, permite ordenar por columna con un clic, y puedes matar procesos directamente desde la interfaz. Presiona **q** para salir, **F6** para ordenar, y **F9** para matar un proceso.
+</Callout>
+
+### Terminar procesos: `kill`
+
+A veces un programa se queda colgado o necesitas detener algo que está corriendo. Para eso usas `kill` seguido del PID del proceso:
+
+```bash
+# Primero, encuentra el PID del proceso
+ps aux | grep "nombre-del-programa"
+
+# Terminar el proceso de forma amable (SIGTERM)
+kill 1234
+
+# Si no responde, forzar la terminación (SIGKILL)
+kill -9 1234
+```
+
+La diferencia entre `kill` y `kill -9` es importante:
+
+| Señal | Número | ¿Qué hace? |
+|-------|--------|------------|
+| **SIGTERM** | 15 (por defecto) | Le pide al proceso que termine. El proceso puede guardar datos y cerrar correctamente |
+| **SIGKILL** | 9 | Fuerza la terminación inmediata. El proceso no puede ignorar esta señal ni guardar nada |
+
+<Callout type="warning" title="Usa kill -9 solo como último recurso">
+  Siempre intenta primero `kill PID` (sin el -9). Esto le da oportunidad al programa de cerrar correctamente, guardar archivos y liberar recursos. Solo usa `kill -9 PID` si el proceso no responde después de unos segundos. Matar un proceso con `-9` puede causar pérdida de datos o archivos corruptos.
+</Callout>
+
+Si no quieres buscar el PID manualmente, puedes terminar procesos por su nombre:
+
+```bash
+# Terminar todos los procesos llamados "node"
+killall node
+
+# Terminar un proceso que coincida con un patrón
+pkill -f "python script.py"
+```
+
+<Callout type="warning" title="Cuidado con killall">
+  `killall` termina **TODOS** los procesos que coincidan con ese nombre. Si tienes 5 procesos de Node.js corriendo, `killall node` los termina todos. Asegúrate de que quieres terminar todos antes de usarlo.
+</Callout>
+
+### Procesos en segundo plano
+
+Normalmente, cuando ejecutas un comando, la terminal se "bloquea" hasta que el comando termina. No puedes escribir nada más hasta que finalice. Pero puedes ejecutar procesos **en segundo plano** para que la terminal quede libre:
+
+```bash
+# El & al final ejecuta el comando en segundo plano
+sleep 60 &
+# [1] 5678  ← [número de job] PID
+
+# La terminal queda libre para seguir trabajando
+```
+
+Veamos los comandos para gestionar procesos en segundo plano:
+
+```bash
+# Ver los procesos en segundo plano de esta terminal
+jobs
+# [1]+  Running   sleep 60 &
+
+# Traer un proceso al frente (vuelve a bloquear la terminal)
+fg %1
+
+# Pausar el proceso actual: presiona Ctrl+Z
+# [1]+  Stopped   sleep 60
+
+# Continuar el proceso pausado, pero en segundo plano
+bg %1
+```
+
+#### Ejemplo práctico paso a paso
+
+Imagina que quieres levantar un servidor web simple mientras sigues trabajando en la terminal:
+
+```bash
+# Iniciar un servidor HTTP en segundo plano
+python3 -m http.server 8000 &
+# [1] 5678
+
+# Verificar que está corriendo
+jobs
+# [1]+  Running   python3 -m http.server 8000 &
+
+# Seguir trabajando normalmente...
+ls
+pwd
+
+# Cuando quieras detenerlo, tráelo al frente y usa Ctrl+C
+fg %1
+# Ctrl+C para detenerlo
+```
+
+### Atajos de teclado importantes
+
+Estos atajos funcionan con cualquier proceso que esté corriendo en tu terminal:
+
+| Atajo | ¿Qué hace? |
+|-------|-----------|
+| **Ctrl + C** | Interrumpe (mata) el proceso que está corriendo en primer plano |
+| **Ctrl + Z** | Pausa el proceso actual y te devuelve al prompt |
+| **Ctrl + D** | Envía señal de "fin de entrada" (cierra la terminal si no hay nada corriendo) |
+
+<Callout type="info" title="Ctrl+C es tu botón de emergencia">
+  Si algún comando se queda corriendo y no termina, o si ves que algo no va bien, presiona **Ctrl + C**. Esto interrumpe la mayoría de los programas inmediatamente. Es el equivalente a "forzar cierre" pero de forma segura. Úsalo sin miedo.
+</Callout>
+
+### Resumen de comandos
+
+<CommandTable commands={[
+  { command: "ps aux", description: "Listar todos los procesos del sistema" },
+  { command: "ps aux | grep nombre", description: "Buscar un proceso específico" },
+  { command: "top", description: "Monitor de procesos en tiempo real" },
+  { command: "htop", description: "Monitor mejorado (necesita instalación)" },
+  { command: "kill PID", description: "Terminar proceso de forma amable" },
+  { command: "kill -9 PID", description: "Forzar terminación (último recurso)" },
+  { command: "killall nombre", description: "Terminar todos los procesos con ese nombre" },
+  { command: "comando &", description: "Ejecutar en segundo plano" },
+  { command: "jobs", description: "Ver procesos en segundo plano" },
+  { command: "fg %N", description: "Traer proceso N al frente" },
+  { command: "bg %N", description: "Continuar proceso N en segundo plano" },
+  { command: "Ctrl+C", description: "Interrumpir el proceso actual" },
+  { command: "Ctrl+Z", description: "Pausar el proceso actual" },
+]} />
+
+### Ejercicios del módulo
+
+1. Ejecuta `ps` (sin flags). ¿Cuántos procesos ves? ¿Qué procesos son?
+2. Ahora ejecuta `ps aux`. ¿Cuántos procesos hay en total? Usa `ps aux | wc -l` para contarlos.
+3. Busca si tienes algún proceso de Bash corriendo: `ps aux | grep "bash"`. ¿Cuántos aparecen?
+4. Ejecuta `top` y observa qué procesos usan más CPU y memoria. Presiona **q** para salir.
+5. Si tienes `htop` instalado, ejecútalo y compara con `top`. Si no lo tienes, instálalo con `sudo apt install htop`.
+6. Ejecuta `sleep 30 &` para crear un proceso en segundo plano. Usa `jobs` para verificar que está corriendo. Luego usa `fg %1` para traerlo al frente y **Ctrl+C** para detenerlo.
+7. Ejecuta `sleep 120 &`. Busca su PID con `ps aux | grep sleep`. Termínalo con `kill PID`.
+8. Ejecuta `sleep 200 &`, luego otro `sleep 300 &`. Usa `jobs` para ver ambos. Mata el segundo con `kill %2`.
+9. Ejecuta `cat` (sin argumentos; se queda esperando entrada). Practica usar **Ctrl+C** para interrumpirlo. Luego ejecútalo de nuevo y usa **Ctrl+Z** para pausarlo. ¿Qué diferencia hay?
+10. **Desafío**: Ejecuta `python3 -m http.server 9000 &` (o cualquier comando de larga duración), verifica que está corriendo con `jobs` y `ps`, y luego termínalo usando su PID.

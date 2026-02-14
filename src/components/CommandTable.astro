@@ -1,0 +1,26 @@
+---
+interface Props {
+  commands: { command: string; description: string }[];
+}
+
+const { commands } = Astro.props;
+---
+
+<div class="not-prose my-6 overflow-x-auto">
+  <table class="w-full text-sm border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
+    <thead>
+      <tr class="bg-slate-100 dark:bg-slate-800">
+        <th class="text-left px-4 py-3 font-semibold text-slate-700 dark:text-slate-300 border-b border-slate-200 dark:border-slate-700">Comando</th>
+        <th class="text-left px-4 py-3 font-semibold text-slate-700 dark:text-slate-300 border-b border-slate-200 dark:border-slate-700">Descripción</th>
+      </tr>
+    </thead>
+    <tbody>
+      {commands.map(({ command, description }, i) => (
+        <tr class={i % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50 dark:bg-slate-800/50'}>
+          <td class="px-4 py-2.5 font-mono text-blue-700 dark:text-blue-400 whitespace-nowrap border-b border-slate-100 dark:border-slate-700/50">{command}</td>
+          <td class="px-4 py-2.5 text-slate-600 dark:text-slate-400 border-b border-slate-100 dark:border-slate-700/50">{description}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>

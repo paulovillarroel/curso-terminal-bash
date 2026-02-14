@@ -1,0 +1,219 @@
+import Callout from '../components/Callout.astro';
+import CommandTable from '../components/CommandTable.astro';
+
+### ¿Qué es Cron?
+
+Imagina que necesitas hacer un respaldo de tus datos todos los días a las 3 de la mañana, o limpiar archivos temporales cada semana. No vas a estar despierto para ejecutar esos comandos manualmente. Para eso existe **Cron**: un servicio de Linux que ejecuta tareas automáticamente en los horarios que tú definas.
+
+Cron funciona como un despertador programable: tú le dices "ejecuta este comando a esta hora" y él se encarga de hacerlo, sin importar si estás frente al computador o no.
+
+### El crontab: tu agenda de tareas
+
+Cada usuario tiene su propio **crontab** (tabla de cron), que es el archivo donde defines tus tareas programadas. Los comandos para gestionarlo son simples:
+
+```bash
+# Ver tus tareas programadas actuales
+crontab -l
+
+# Editar tu crontab (abrir el editor para agregar/modificar tareas)
+crontab -e
+
+# Eliminar TODAS tus tareas programadas
+crontab -r
+```
+
+<Callout type="warning" title="Cuidado con crontab -r">
+  El comando `crontab -r` elimina **todas** tus tareas programadas sin pedir confirmación. Si solo quieres eliminar una tarea, usa `crontab -e` y borra la línea correspondiente. Es muy fácil confundir `-e` (editar) con `-r` (remover) porque están al lado en el teclado.
+</Callout>
+
+<Callout type="info" title="Primera vez con crontab -e">
+  La primera vez que ejecutes `crontab -e`, te pedirá elegir un editor de texto. Selecciona **nano** (generalmente es la opción 1). Si por accidente seleccionas Vim y no sabes usarlo, presiona `Esc`, escribe `:q!` y Enter para salir, luego ejecuta `select-editor` para cambiar el editor.
+</Callout>
+
+### La sintaxis de Cron paso a paso
+
+Cada línea del crontab tiene dos partes: **cuándo** ejecutar (5 campos de tiempo) y **qué** ejecutar (el comando). La estructura es:
+
+```
+┌───────── minuto (0-59)
+│ ┌─────── hora (0-23)
+│ │ ┌───── día del mes (1-31)
+│ │ │ ┌─── mes (1-12)
+│ │ │ │ ┌─ día de la semana (0-7, donde 0 y 7 = domingo)
+│ │ │ │ │
+* * * * * comando-a-ejecutar
+```
+
+El asterisco `*` significa "todos los valores posibles". Así que `* * * * *` significa "cada minuto de cada hora de cada día de cada mes de cada día de la semana" (o sea, cada minuto).
+
+Veamos los caracteres especiales que puedes usar:
+
+| Carácter | Significado | Ejemplo |
+|----------|-------------|---------|
+| `*` | Cualquier valor | `* * * * *` = cada minuto |
+| `,` | Lista de valores | `0,15,30,45 * * * *` = minutos 0, 15, 30 y 45 |
+| `-` | Rango de valores | `0 9-17 * * *` = cada hora de 9 AM a 5 PM |
+| `/` | Cada N unidades | `*/5 * * * *` = cada 5 minutos |
+
+### Ejemplos prácticos explicados
+
+Veamos algunos ejemplos comunes, traduciéndolos a español:
+
+```bash title="crontab -e"
+# Cada minuto (útil para probar que cron funciona)
+* * * * * echo "test $(date)" >> /tmp/cron-test.log
+
+# Todos los días a las 2:30 AM
+# (minuto 30, hora 2, cualquier día, cualquier mes, cualquier día de semana)
+30 2 * * * /home/usuario/scripts/respaldo.sh
+
+# Cada lunes a las 9:00 AM
+# (minuto 0, hora 9, cualquier día del mes, cualquier mes, día 1=lunes)
+0 9 * * 1 /home/usuario/scripts/reporte-semanal.sh
+
+# Cada 15 minutos
+*/15 * * * * /home/usuario/scripts/verificar-servicio.sh
+
+# El primer día de cada mes a medianoche
+0 0 1 * * /home/usuario/scripts/limpieza-mensual.sh
+
+# De lunes a viernes a las 8:00 AM
+0 8 * * 1-5 /home/usuario/scripts/recordatorio.sh
+
+# Cada 6 horas (a las 0, 6, 12, 18)
+0 */6 * * * /home/usuario/scripts/sincronizar.sh
+```
+
+<Callout type="tip" title="Probador de expresiones cron">
+  Si no estás seguro de que tu expresión cron hace lo que quieres, usa <a href="https://crontab.guru" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline font-semibold">crontab.guru</a>. Es una herramienta web gratuita donde escribes la expresión y te dice en español cuándo se ejecutará. Úsala siempre antes de agregar una tarea a tu crontab.
+</Callout>
+
+### Errores comunes y buenas prácticas
+
+Cron ejecuta las tareas en un **entorno mínimo**: no carga tu archivo `.bashrc`, no tiene las mismas variables de entorno que tu terminal, y no sabe dónde están tus programas a menos que se lo digas explícitamente. Esto causa la mayoría de los problemas con cron.
+
+**Siempre usa rutas absolutas:**
+
+```bash
+# MAL: cron no sabe dónde está "mi-script.sh"
+* * * * * mi-script.sh
+
+# BIEN: ruta completa al script
+* * * * * /home/usuario/scripts/mi-script.sh
+
+# MAL: cron podría no encontrar python3
+* * * * * python3 tarea.py
+
+# BIEN: ruta completa a python y al script
+* * * * * /usr/bin/python3 /home/usuario/scripts/tarea.py
+```
+
+**Siempre redirige la salida a un log** para poder investigar si algo sale mal:
+
+```bash
+# Sin log: si hay un error, nunca te enterarás
+0 3 * * * /home/usuario/scripts/respaldo.sh
+
+# Con log: guardas la salida y los errores
+0 3 * * * /home/usuario/scripts/respaldo.sh >> /var/log/respaldo.log 2>&1
+```
+
+El `2>&1` al final significa "envía los errores al mismo lugar que la salida normal". Así tanto los mensajes normales como los errores quedan guardados en el log.
+
+<Callout type="warning" title="Los 3 errores más comunes con cron">
+  1. **Usar rutas relativas**: Siempre usa rutas absolutas para scripts y programas.
+  2. **No dar permisos de ejecución**: Tu script necesita `chmod +x` para que cron pueda ejecutarlo.
+  3. **No redirigir la salida**: Sin un log, no sabrás si tu tarea falló o qué error produjo.
+</Callout>
+
+### Script de ejemplo para usar con Cron
+
+Veamos un ejemplo completo de un script diseñado para ser ejecutado por cron:
+
+```bash title="limpieza.sh"
+#!/bin/bash
+
+# Script de limpieza: elimina archivos temporales mayores a 7 días
+# Diseñado para ejecutarse con cron
+
+LOG="/var/log/limpieza.log"
+DIR="/tmp"
+
+echo "=== Limpieza $(date) ===" >> "$LOG"
+
+# Encontrar y contar archivos viejos
+archivos=$(find "$DIR" -type f -mtime +7 -name "*.tmp" 2>/dev/null)
+
+if [ -n "$archivos" ]; then
+    cantidad=$(echo "$archivos" | wc -l)
+    echo "Encontrados $cantidad archivos para eliminar" >> "$LOG"
+
+    echo "$archivos" | while read -r f; do
+        rm "$f" && echo "  Eliminado: $f" >> "$LOG"
+    done
+else
+    echo "No hay archivos para limpiar" >> "$LOG"
+fi
+
+echo "=== Fin ===" >> "$LOG"
+```
+
+```bash
+# Dar permisos de ejecución
+chmod +x limpieza.sh
+
+# Agregar al crontab para ejecutar todos los días a las 3 AM
+crontab -e
+# Agregar esta línea:
+# 0 3 * * * /home/usuario/scripts/limpieza.sh
+```
+
+### Verificar que cron funciona
+
+Si acabas de configurar una tarea cron y quieres verificar que funciona, sigue estos pasos:
+
+```bash
+# 1. Verificar que el servicio cron está corriendo
+systemctl status cron
+# Debería decir "active (running)"
+
+# 2. Agregar una tarea de prueba que se ejecute cada minuto
+crontab -e
+# Agregar: * * * * * echo "$(date) - cron funciona" >> /tmp/cron-test.log
+
+# 3. Esperar un minuto y verificar
+cat /tmp/cron-test.log
+# Deberías ver una línea con la fecha
+
+# 4. ¡MUY IMPORTANTE! Eliminar la tarea de prueba
+crontab -e
+# Borrar la línea de prueba (si la dejas, generará una línea por minuto para siempre)
+```
+
+<Callout type="warning" title="No olvides eliminar las tareas de prueba">
+  Si dejas una tarea que se ejecuta cada minuto, generará datos indefinidamente. Un `echo` simple no es grave, pero un script que mueve archivos o consume recursos podría causar problemas. Siempre elimina tus tareas de prueba después de verificar.
+</Callout>
+
+### Resumen
+
+<CommandTable commands={[
+  { command: "crontab -l", description: "Ver tus tareas programadas actuales" },
+  { command: "crontab -e", description: "Editar tus tareas programadas" },
+  { command: "crontab -r", description: "Eliminar TODAS las tareas (cuidado)" },
+  { command: "systemctl status cron", description: "Verificar que el servicio cron está activo" },
+]} />
+
+### Ejercicios del módulo
+
+1. Ejecuta `crontab -l` para ver si tienes alguna tarea programada. Si dice "no crontab for user", es normal.
+2. Ejecuta `systemctl status cron` para verificar que el servicio está corriendo.
+3. Traduce estas expresiones cron a español (o verifica en crontab.guru):
+   - `0 12 * * *`
+   - `30 8 * * 1-5`
+   - `0 0 1 * *`
+   - `*/10 * * * *`
+4. Escribe la expresión cron para: "todos los domingos a las 6 PM".
+5. Escribe la expresión cron para: "cada 30 minutos, solo entre las 9 AM y las 6 PM, de lunes a viernes".
+6. Crea una tarea cron de prueba que escriba la fecha actual en `/tmp/mi-cron.log` cada minuto. Espera 2 minutos y verifica con `cat /tmp/mi-cron.log`. Luego **elimina la tarea de prueba**.
+7. Crea el script `limpieza.sh` del ejemplo. Ejecútalo manualmente primero para verificar que funciona (`./limpieza.sh`). Luego agrégalo al crontab.
+8. **Desafío**: Crea un script que registre el uso de disco (`df -h`) en un archivo de log con fecha y hora, y prográmalo con cron para que se ejecute cada 6 horas.

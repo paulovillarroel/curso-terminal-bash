@@ -1,0 +1,65 @@
+---
+import ThemeToggle from './ThemeToggle.astro';
+
+const modules = [
+  { id: 'inicio', label: 'Inicio' },
+  { id: 'modulo-1', label: '1. Introducción' },
+  { id: 'modulo-2', label: '2. Primeros pasos' },
+  { id: 'modulo-3', label: '3. Archivos y directorios' },
+  { id: 'modulo-4', label: '4. Visualización y búsqueda' },
+  { id: 'modulo-5', label: '5. Editores de texto' },
+  { id: 'modulo-6', label: '6. Permisos y admin' },
+  { id: 'modulo-7', label: '7. Procesos' },
+  { id: 'modulo-8', label: '8. Bash scripting' },
+  { id: 'modulo-9', label: '9. Cron' },
+  { id: 'ejercicios', label: 'Ejercicios finales' },
+];
+---
+
+<aside id="sidebar" class="hidden lg:flex flex-col fixed top-0 left-0 w-70 h-screen bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700 z-40">
+  <div class="p-6 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+    <a href="#inicio" class="text-lg font-bold text-slate-900 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+      Terminal & Bash
+    </a>
+    <ThemeToggle />
+  </div>
+  <nav class="flex-1 overflow-y-auto sidebar-scroll p-4">
+    <ul class="space-y-1">
+      {modules.map(({ id, label }) => (
+        <li>
+          <a
+            href={`#${id}`}
+            class="sidebar-link block px-3 py-2 text-sm text-slate-600 dark:text-slate-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200 transition-colors"
+            data-section={id}
+          >
+            {label}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+</aside>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const links = document.querySelectorAll('.sidebar-link');
+    const sections = document.querySelectorAll('section[id]');
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            links.forEach((link) => link.classList.remove('active'));
+            const activeLink = document.querySelector(
+              `.sidebar-link[data-section="${entry.target.id}"]`
+            );
+            activeLink?.classList.add('active');
+          }
+        });
+      },
+      { rootMargin: '-20% 0px -60% 0px' }
+    );
+
+    sections.forEach((section) => observer.observe(section));
+  });
+</script>

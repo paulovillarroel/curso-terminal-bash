@@ -1,0 +1,27 @@
+---
+interface Props {
+  id: string;
+  title: string;
+  number?: string;
+  alternate?: boolean;
+}
+
+const { id, title, number, alternate = false } = Astro.props;
+const bgClass = alternate ? 'bg-slate-50 dark:bg-slate-800/50' : 'bg-white dark:bg-slate-900';
+---
+
+<section id={id} class={`scroll-mt-14 lg:scroll-mt-0 py-16 ${bgClass}`}>
+  <div class="max-w-3xl mx-auto px-6">
+    <div class="flex items-center gap-3 mb-8">
+      {number && (
+        <span class="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 font-bold text-sm shrink-0">
+          {number}
+        </span>
+      )}
+      <h2 class="text-2xl lg:text-3xl font-bold text-slate-900 dark:text-slate-100">{title}</h2>
+    </div>
+    <div class="prose prose-slate max-w-none prose-headings:scroll-mt-20 prose-code:before:content-none prose-code:after:content-none prose-code:bg-slate-100 dark:prose-code:bg-slate-700 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:font-medium">
+      <slot />
+    </div>
+  </div>
+</section>

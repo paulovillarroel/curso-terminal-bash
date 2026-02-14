@@ -1,0 +1,280 @@
+import Callout from '../components/Callout.astro';
+import CommandTable from '../components/CommandTable.astro';
+
+Ahora que sabes moverte por el sistema de archivos, es momento de aprender a crear, copiar, mover y eliminar archivos y carpetas. Estos son los comandos que más usarás en el día a día.
+
+### Crear directorios con `mkdir`
+
+El comando `mkdir` (de "make directory") crea una carpeta nueva. Es equivalente a hacer clic derecho y seleccionar "Nueva carpeta" en la interfaz gráfica, pero más rápido:
+
+```bash
+# Crear una carpeta
+mkdir mi-proyecto
+
+# Crear varias carpetas a la vez
+mkdir css js img
+```
+
+¿Y si necesitas crear una carpeta dentro de otra que tampoco existe? Por ejemplo, quieres crear `proyecto/src/components` pero ni `proyecto` ni `src` existen todavía. Si intentas hacerlo directamente, obtendrás un error. Para eso existe el flag `-p`, que crea toda la estructura de carpetas intermedias:
+
+```bash
+# Sin -p, esto daría error si "proyecto" no existe
+mkdir -p proyecto/src/components
+
+# Crea "proyecto", luego "src" dentro, luego "components" dentro
+```
+
+<Callout type="tip" title="Consejo práctico">
+  Acostúmbrate a usar `mkdir -p` siempre. Si las carpetas ya existen, no pasa nada (no da error). Si no existen, las crea. Es más seguro.
+</Callout>
+
+### Crear archivos con `touch`
+
+El comando `touch` crea un archivo vacío. Su nombre viene de "tocar" el archivo; si el archivo ya existe, simplemente actualiza su fecha de modificación sin cambiar el contenido:
+
+```bash
+# Crear un archivo vacío
+touch archivo.txt
+
+# Crear varios archivos de una vez
+touch index.html style.css app.js
+
+# Si el archivo ya existe, solo actualiza la fecha (no borra nada)
+touch archivo-existente.txt
+```
+
+En la práctica, `touch` es la forma más rápida de crear un archivo vacío que luego vas a editar.
+
+### Copiar archivos y directorios con `cp`
+
+El comando `cp` (de "copy") copia archivos. Funciona con la lógica de `cp origen destino`:
+
+```bash
+# Copiar un archivo
+cp archivo.txt copia.txt
+
+# Copiar un archivo a otra carpeta
+cp archivo.txt carpeta/
+
+# Copiar un archivo a otra carpeta con otro nombre
+cp archivo.txt carpeta/nuevo-nombre.txt
+```
+
+Para copiar una **carpeta completa** con todo su contenido, necesitas el flag `-r` (de "recursivo"). Sin este flag, `cp` solo copia archivos sueltos:
+
+```bash
+# Esto NO funciona sin -r (da error)
+cp mi-carpeta/ copia-carpeta/
+
+# Esto SÍ funciona: copia la carpeta y todo lo de dentro
+cp -r mi-carpeta/ copia-carpeta/
+```
+
+<Callout type="info" title="¿Qué significa recursivo?">
+  "Recursivo" significa que el comando se aplica a la carpeta y a **todo lo que hay dentro**: subcarpetas, archivos dentro de subcarpetas, etc. Verás el flag `-r` en varios comandos. Siempre significa lo mismo: "incluye todo lo de adentro".
+</Callout>
+
+Un ejemplo práctico muy común es hacer un respaldo antes de modificar algo:
+
+```bash
+# Antes de hacer cambios importantes, haz una copia
+cp -r mi-proyecto/ mi-proyecto-respaldo/
+```
+
+### Mover y renombrar con `mv`
+
+El comando `mv` (de "move") hace dos cosas: **mover** archivos a otra ubicación y **renombrar** archivos. En la terminal, mover y renombrar son la misma operación:
+
+```bash
+# Renombrar un archivo (misma carpeta, otro nombre)
+mv nombre-viejo.txt nombre-nuevo.txt
+
+# Mover un archivo a otra carpeta (no cambia el nombre)
+mv archivo.txt carpeta/
+
+# Mover Y renombrar al mismo tiempo
+mv viejo.txt carpeta/nuevo.txt
+
+# Mover una carpeta completa (no necesita -r como cp)
+mv proyecto/ /home/usuario/Documentos/
+```
+
+A diferencia de `cp`, el comando `mv` no necesita `-r` para mover carpetas. Simplemente las mueve completas.
+
+<Callout type="tip" title="mv no hace copia">
+  Recuerda que `mv` **mueve** el archivo: desaparece del lugar original. Si quieres mantener el original y crear una copia en otro lugar, usa `cp` en su lugar.
+</Callout>
+
+### Eliminar archivos y directorios con `rm`
+
+Aquí necesitamos ir con mucho cuidado. El comando `rm` (de "remove") elimina archivos **permanentemente**. No hay papelera de reciclaje, no hay "deshacer", no hay manera de recuperar lo que borres. Una vez que presionas Enter, el archivo desaparece para siempre.
+
+<Callout type="warning" title="rm es permanente e irreversible">
+  A diferencia de la papelera de reciclaje de tu escritorio, `rm` elimina archivos de forma definitiva. Antes de ejecutar cualquier `rm`, **lee dos veces** lo que vas a borrar. Una buena práctica es usar `ls` primero con el mismo patrón para verificar qué archivos coinciden.
+</Callout>
+
+```bash
+# Eliminar un archivo
+rm archivo.txt
+
+# Eliminar con confirmación (te pregunta antes de borrar cada archivo)
+rm -i archivo.txt
+# rm: ¿borrar el fichero regular 'archivo.txt'? (s/n)
+```
+
+Para eliminar carpetas, necesitas decidir si están vacías o no:
+
+```bash
+# Eliminar una carpeta vacía (solo funciona si no tiene nada dentro)
+rmdir carpeta-vacia
+
+# Eliminar una carpeta CON contenido (recursivo)
+rm -r carpeta/
+```
+
+<Callout type="warning" title="PELIGRO: comandos que nunca debes ejecutar">
+  Existen combinaciones de `rm` que pueden destruir tu sistema completo. **Nunca** ejecutes estos comandos:
+
+  - `rm -rf /` — Borra TODO el sistema operativo.
+  - `rm -rf *` — Borra todo el contenido del directorio actual.
+  - `rm -rf ~` — Borra todo tu directorio home (tus documentos, configuraciones, todo).
+
+  El flag `-f` (force) omite confirmaciones y el flag `-r` (recursive) borra todo lo de adentro. Juntos son extremadamente peligrosos si se aplican al lugar equivocado.
+</Callout>
+
+Una forma más segura de trabajar con `rm` es usar siempre el flag `-i` para que te pida confirmación, o verificar antes con `ls`:
+
+```bash
+# Primero verifica qué archivos vas a borrar
+ls *.tmp
+# archivo1.tmp  archivo2.tmp  resultado.tmp
+
+# Si estás seguro, borra
+rm *.tmp
+
+# O usa -i para que te pregunte uno por uno
+rm -i *.tmp
+```
+
+### Wildcards (comodines): seleccionar varios archivos a la vez
+
+Los comodines son patrones que te permiten referirte a múltiples archivos sin escribir cada nombre. Son muy útiles combinados con `cp`, `mv`, `rm` y `ls`:
+
+El comodín más usado es `*` (asterisco), que significa "cualquier cantidad de cualquier carácter":
+
+```bash
+# Todos los archivos que terminan en .txt
+ls *.txt
+
+# Todos los archivos que empiezan con "datos"
+ls datos*
+
+# Todos los archivos (cualquier nombre, cualquier extensión)
+ls *
+```
+
+Otros comodines útiles:
+
+| Wildcard | Significado | Ejemplo |
+|----------|-------------|---------|
+| `*` | Cualquier cantidad de caracteres | `*.txt` = todos los .txt |
+| `?` | Exactamente un carácter | `archivo?.txt` = archivo1.txt, archivoA.txt |
+| `[abc]` | Uno de los caracteres listados | `archivo[123].txt` = archivo1, archivo2, archivo3 |
+| `[a-z]` | Un carácter en el rango | `[A-Z]*.txt` = archivos que empiezan con mayúscula |
+
+```bash
+# Copiar todas las imágenes a una carpeta
+cp *.jpg imagenes/
+cp *.png imagenes/
+
+# Mover todos los archivos de datos
+mv datos_*.csv carpeta-datos/
+
+# Listar archivos que empiezan con "test"
+ls test*
+```
+
+<Callout type="warning" title="Cuidado con rm y wildcards">
+  Antes de ejecutar `rm *.algo`, siempre ejecuta `ls *.algo` primero para ver qué archivos coinciden. Un wildcard mal escrito puede borrar archivos que no esperabas. Por ejemplo, `rm * .txt` (con un espacio antes del punto) borraría TODOS los archivos y luego intentaría borrar un archivo llamado `.txt`.
+</Callout>
+
+### Visualizar la estructura con `tree`
+
+El comando `tree` te muestra la estructura de carpetas de forma visual, como un árbol. Es excelente para entender cómo está organizado un proyecto:
+
+```bash
+# Instalar tree (no viene preinstalado)
+sudo apt install tree    # Debian/Ubuntu/WSL
+brew install tree        # macOS
+
+# Ver la estructura completa
+tree
+
+# Limitar la profundidad (2 niveles)
+tree -L 2
+
+# Ver solo directorios (sin archivos)
+tree -d
+```
+
+```bash title="Ejemplo de salida de tree"
+.
+├── src/
+│   ├── index.html
+│   ├── css/
+│   │   └── style.css
+│   └── js/
+│       └── app.js
+├── package.json
+└── README.md
+```
+
+### Encontrar archivos con `find`
+
+Cuando tienes muchos archivos y carpetas, `find` te ayuda a buscar archivos por nombre, tipo, tamaño o fecha de modificación:
+
+```bash
+# Buscar todos los archivos .txt desde el directorio actual
+find . -name "*.txt"
+
+# Buscar solo directorios con un nombre específico
+find . -type d -name "src"
+
+# Buscar archivos modificados en las últimas 24 horas
+find . -mtime -1
+
+# Buscar archivos mayores a 10MB
+find . -size +10M
+```
+
+El punto `.` al inicio significa "buscar desde aquí". Podrías reemplazarlo por cualquier ruta, como `/home/usuario` o `/var/log`.
+
+### Resumen de comandos
+
+<CommandTable commands={[
+  { command: "mkdir carpeta", description: "Crear directorio" },
+  { command: "mkdir -p a/b/c", description: "Crear directorios anidados" },
+  { command: "touch archivo", description: "Crear archivo vacío" },
+  { command: "cp origen destino", description: "Copiar archivo" },
+  { command: "cp -r carpeta/ copia/", description: "Copiar directorio completo" },
+  { command: "mv origen destino", description: "Mover o renombrar" },
+  { command: "rm archivo", description: "Eliminar archivo (permanente)" },
+  { command: "rm -i archivo", description: "Eliminar con confirmación" },
+  { command: "rm -r carpeta/", description: "Eliminar directorio y todo su contenido" },
+  { command: "rmdir carpeta", description: "Eliminar directorio vacío" },
+  { command: "tree", description: "Ver estructura de directorios visualmente" },
+  { command: "find . -name patrón", description: "Buscar archivos por nombre" },
+]} />
+
+### Ejercicios del módulo
+
+1. Crea una carpeta llamada `practica` en tu home. Dentro de ella, crea tres subcarpetas: `datos`, `scripts` y `resultados`.
+2. Usando un solo comando con `mkdir -p`, crea la estructura `proyecto/src/utils`.
+3. Dentro de `practica`, crea 3 archivos vacíos: `nota1.txt`, `nota2.txt` y `nota3.txt`.
+4. Copia `nota1.txt` a `datos/` con el nombre `copia-nota.txt`.
+5. Renombra `nota3.txt` a `nota-final.txt` usando `mv`.
+6. Usa `ls *.txt` dentro de `practica` para ver todos los archivos .txt. ¿Cuántos aparecen?
+7. Elimina `nota2.txt` usando `rm -i` (con confirmación). Responde "s" cuando te pregunte.
+8. Usa `tree practica` para ver la estructura completa que creaste. ¿Se ve como esperabas?
+9. Usa `find practica -name "*.txt"` para encontrar todos los .txt dentro de la carpeta. ¿Encuentra también el que copiaste a `datos/`?
+10. **Desafío**: Elimina toda la carpeta `practica` con un solo comando. (Pista: necesitarás `-r`)
