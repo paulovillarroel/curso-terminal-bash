@@ -7,6 +7,74 @@ Hasta ahora has escrito comandos uno por uno en la terminal. Un **script** es si
 
 Piensa en un script como una receta de cocina: es una lista de instrucciones paso a paso que el computador sigue automáticamente. Los scripts son increíblemente útiles para automatizar tareas repetitivas, como hacer respaldos, procesar archivos de datos, o configurar un entorno de trabajo.
 
+### ¿Por qué Bash si ya existe Python y R?
+
+Si vienes del mundo de ciencia de datos, probablemente te preguntas: ¿para qué aprender Bash scripting si puedo hacer todo en Python o R? La respuesta es que **Bash no reemplaza a esos lenguajes, los coordina**. Cada uno tiene su rol:
+
+- **Python/R**: análisis, estadísticas, modelos, visualizaciones
+- **Bash**: automatizar, conectar, mover archivos, preparar datos, orquestar
+
+En la práctica, un flujo de trabajo real de ciencia de datos se ve así:
+
+```bash title="pipeline-datos.sh"
+#!/bin/bash
+
+echo "=== Pipeline de análisis de datos ==="
+echo "Inicio: $(date)"
+
+# 1. Descargar los datos frescos
+echo "Descargando datos..."
+curl -s -o datos_raw.csv https://api.ejemplo.com/datos/export
+
+# 2. Limpiar y transformar con Python
+echo "Limpiando datos con Python..."
+python3 limpiar_datos.py datos_raw.csv datos_limpios.csv
+
+# 3. Análisis estadístico con R
+echo "Ejecutando análisis en R..."
+Rscript analisis_estadistico.R datos_limpios.csv resultados/
+
+# 4. Generar reporte
+echo "Generando reporte..."
+python3 generar_reporte.py resultados/ reporte_final.html
+
+echo "Pipeline completado: $(date)"
+echo "Reporte disponible en: reporte_final.html"
+```
+
+**Bash es el director de orquesta**: descarga datos, llama a Python para limpiarlos, llama a R para analizarlos, y junta todo. Este patrón es la forma estándar de trabajar en **Bioinformática, Data Science y DevOps**.
+
+<Callout type="info" title="Ejemplo real: Bioinformática">
+  En bioinformática, un pipeline típico ejecuta una docena de herramientas diferentes en secuencia: descarga secuencias genómicas, las alinea con una herramienta en C++, las filtra con Python, hace estadísticas con R, y genera reportes en HTML. Todo coordinado por un script de Bash. Sin Bash, tendrías que ejecutar cada paso manualmente y acordarte del orden exacto.
+</Callout>
+
+Otro ejemplo más simple pero muy útil: preparar tu entorno de trabajo cada día:
+
+```bash title="iniciar-proyecto.sh"
+#!/bin/bash
+
+# Script para iniciar tu día de trabajo en un proyecto de datos
+echo "Preparando entorno de trabajo..."
+
+# Activar el entorno virtual de Python
+source ~/envs/mi-proyecto/bin/activate
+
+# Ir al directorio del proyecto
+cd ~/proyectos/analisis-salud
+
+# Descargar datos actualizados
+echo "Descargando datos del día..."
+python3 descargar_datos.py
+
+# Abrir Jupyter Notebook
+echo "Abriendo Jupyter..."
+jupyter notebook &
+
+echo "¡Todo listo! Jupyter se abrió en tu navegador."
+```
+
+En lugar de recordar y escribir 5 comandos cada mañana, ejecutas `./iniciar-proyecto.sh` y todo se prepara solo.
+
 ### Tu primer script
 
 Vamos a crear un script simple paso a paso. Abre Nano y crea un archivo llamado `hola.sh`:
@@ -38,11 +106,143 @@ chmod +x hola.sh
 ./hola.sh
 ```
 
-<Callout type="info" title="El shebang: #!/bin/bash">
-  La primera línea `#!/bin/bash` se llama **shebang** (o hashbang). Le dice al sistema qué programa debe usar para interpretar el script. Sin esta línea, el sistema podría no saber cómo ejecutar tu archivo. **Siempre** incluye el shebang como primera línea de tus scripts de Bash.
+#### El shebang: `#!/bin/bash`
+
+La primera línea `#!/bin/bash` se llama **shebang** (o hashbang). Es la línea más importante de cualquier script porque le dice al sistema operativo **qué programa debe usar para interpretar** las instrucciones que siguen.
+
+```bash
+#!/bin/bash     ← "Usa Bash para ejecutar este script"
+```
+
+Sin el shebang, el sistema podría intentar ejecutar tu script con el shell equivocado, o directamente no saber qué hacer con él. **Siempre** incluye el shebang como primera línea.
+
+El shebang no es exclusivo de Bash. Esto es lo que hace tan poderoso el concepto: puedes tener scripts en diferentes lenguajes y el sistema sabe cómo ejecutar cada uno:
+
+```bash
+#!/bin/bash          # Script de Bash
+#!/usr/bin/env python3  # Script de Python
+#!/usr/bin/env Rscript  # Script de R
+#!/usr/bin/env node     # Script de Node.js
+```
+
+<Callout type="tip" title="¿Por qué /usr/bin/env?">
+  Para Python, R y otros lenguajes, es mejor usar `#!/usr/bin/env python3` en vez de `#!/usr/bin/python3`. La versión con `env` busca el programa en tu `PATH`, así funciona aunque Python esté instalado en una ruta diferente (como en un entorno virtual). Para Bash usamos `#!/bin/bash` directamente porque Bash siempre está en `/bin/bash` en sistemas Linux.
 </Callout>
 
-¿Por qué escribimos `./hola.sh` y no solo `hola.sh`? El `./` le dice a la terminal "busca el archivo aquí, en el directorio actual". Sin el `./`, la terminal buscaría un programa llamado `hola.sh` en las carpetas del sistema (como `/usr/bin`), y no lo encontraría.
+#### Rutas al ejecutar scripts: `./` y por qué importa
+
+¿Por qué escribimos `./hola.sh` y no simplemente `hola.sh`? Este es un punto que confunde a muchos al principio, pero es fundamental entenderlo.
+
+Cuando escribes un comando en la terminal, el sistema lo busca en una lista de carpetas predefinidas (el `PATH`). Puedes ver esas carpetas con:
+
+```bash
+echo $PATH
+# /usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
+```
+
+Si escribes `ls`, la terminal busca en esas carpetas, encuentra `/usr/bin/ls`, y lo ejecuta. Pero tu script `hola.sh` no está en ninguna de esas carpetas — está en tu directorio actual. Por eso necesitas decirle **explícitamente** dónde está:
+
+```bash
+# Esto NO funciona (busca hola.sh en el PATH del sistema)
+hola.sh
+# Error: command not found
+
+# Esto SÍ funciona (el ./ significa "en el directorio actual")
+./hola.sh
+
+# Esto también funciona (ruta completa)
+/home/paulo/scripts/hola.sh
+
+# Y esto también (ruta relativa desde otro lugar)
+../scripts/hola.sh
+```
+
+Repasemos los tipos de rutas, porque entender esto te ahorrará muchos dolores de cabeza:
+
+**Ruta absoluta**: empieza desde la raíz del sistema (`/`). Siempre funciona sin importar dónde estés:
+```bash
+/home/paulo/proyectos/analisis/script.sh
+/home/paulo/datos/pacientes.csv
+```
+
+**Ruta relativa**: parte desde tu directorio actual. Cambia según dónde estés:
+```bash
+./script.sh              # En el directorio actual
+../datos/pacientes.csv   # Un nivel arriba, luego en datos/
+scripts/procesar.sh      # Dentro de la subcarpeta scripts/
+```
+
+**Atajos útiles**:
+```bash
+.     # Directorio actual
+..    # Directorio padre (un nivel arriba)
+~     # Tu directorio home (/home/tu-usuario)
+```
+
+<Callout type="warning" title="Las rutas dentro de un script son relativas a DONDE lo ejecutas">
+  Este es uno de los errores más comunes. Si tu script hace referencia a `datos/archivo.csv`, esa ruta es relativa **al directorio desde donde ejecutas el script**, no a donde está el script. Ejemplo:
+
+  ```bash
+  # Tu script está en ~/proyectos/scripts/procesar.sh
+  # Y dentro tiene: python3 limpiar.py datos/raw.csv
+
+  # Si lo ejecutas desde ~/proyectos/scripts/
+  cd ~/proyectos/scripts/
+  ./procesar.sh  # Busca datos/raw.csv dentro de scripts/ ← ¡NO EXISTE!
+
+  # Si lo ejecutas desde ~/proyectos/
+  cd ~/proyectos/
+  ./scripts/procesar.sh  # Busca datos/raw.csv dentro de proyectos/ ← ¡CORRECTO!
+  ```
+
+  Para evitar este problema, usa **rutas absolutas** dentro de tus scripts, o usa este truco al inicio del script para cambiar al directorio donde está el archivo:
+
+  ```bash
+  #!/bin/bash
+  # Ir al directorio donde está este script
+  cd "$(dirname "$0")"
+  ```
+</Callout>
+
+Veamos un ejemplo práctico. Imagina esta estructura de proyecto:
+
+```
+mi-proyecto/
+├── scripts/
+│   ├── limpiar.sh
+│   └── analizar.sh
+├── datos/
+│   ├── raw/
+│   │   └── encuesta.csv
+│   └── procesados/
+└── resultados/
+```
+
+Dentro de `limpiar.sh`, podrías escribir las rutas de dos formas:
+
+```bash title="scripts/limpiar.sh — MAL (rutas frágiles)"
+#!/bin/bash
+# Esto solo funciona si ejecutas desde mi-proyecto/
+python3 scripts/limpiar_datos.py datos/raw/encuesta.csv datos/procesados/encuesta_limpia.csv
+```
+
+```bash title="scripts/limpiar.sh — BIEN (rutas robustas)"
+#!/bin/bash
+# Primero nos ubicamos en la raíz del proyecto
+cd "$(dirname "$0")/.."
+
+# Ahora las rutas son predecibles
+python3 scripts/limpiar_datos.py datos/raw/encuesta.csv datos/procesados/encuesta_limpia.csv
+
+echo "Datos procesados en: $(pwd)/datos/procesados/"
+```
+
+La línea `cd "$(dirname "$0")/.."` hace lo siguiente:
+- `$0` = la ruta con la que se llamó al script (ej: `./scripts/limpiar.sh`)
+- `dirname "$0"` = el directorio donde está el script (ej: `./scripts`)
+- `/.."` = subir un nivel (al directorio del proyecto)
+
+Así el script siempre funciona sin importar desde dónde lo ejecutes.
 
 ### Variables
 
@@ -405,6 +605,107 @@ Analicemos las partes nuevas:
 - `tar -czf` crea un archivo comprimido (.tar.gz). `-c` = crear, `-z` = comprimir con gzip, `-f` = nombre del archivo.
 - `$?` contiene el código de salida del último comando. `0` significa éxito, cualquier otro número significa error.
 
+### Bash como herramienta de ciencia de datos
+
+Ya vimos cómo Bash coordina herramientas. Pero Bash también puede hacer **procesamiento de datos básico por sí solo**, sin necesidad de Python o R. Esto es útil para exploración rápida, limpieza preliminar, o cuando trabajas en un servidor sin entorno gráfico.
+
+#### Explorar un CSV desde la terminal
+
+```bash title="explorar-csv.sh"
+#!/bin/bash
+
+# Script para exploración rápida de un archivo CSV
+archivo="${1:?Uso: $0 archivo.csv}"
+
+if [ ! -f "$archivo" ]; then
+    echo "Error: '$archivo' no existe"
+    exit 1
+fi
+
+echo "=== Exploración de $archivo ==="
+echo ""
+
+# ¿Cuántas filas tiene? (restamos 1 por el encabezado)
+total=$(wc -l < "$archivo")
+filas=$((total - 1))
+echo "Filas de datos: $filas"
+
+# ¿Cuántas columnas?
+columnas=$(head -1 "$archivo" | tr ',' '\n' | wc -l)
+echo "Columnas: $columnas"
+
+# Mostrar los nombres de las columnas
+echo ""
+echo "Nombres de columnas:"
+head -1 "$archivo" | tr ',' '\n' | nl
+
+# Primeras 5 filas
+echo ""
+echo "Primeras 5 filas:"
+head -6 "$archivo" | column -t -s ','
+
+# Tamaño del archivo
+tamano=$(du -h "$archivo" | cut -f1)
+echo ""
+echo "Tamaño: $tamano"
+```
+
+```bash
+chmod +x explorar-csv.sh
+./explorar-csv.sh datos_pacientes.csv
+# === Exploración de datos_pacientes.csv ===
+#
+# Filas de datos: 1523
+# Columnas: 8
+#
+# Nombres de columnas:
+#      1  id
+#      2  nombre
+#      3  edad
+#      4  diagnostico
+#      ...
+```
+
+#### Procesar múltiples archivos de datos
+
+Imagina que recibes datos mensuales en archivos separados y necesitas unirlos:
+
+```bash title="unir-datos.sh"
+#!/bin/bash
+
+# Unir múltiples CSV en uno solo (mismo formato, con encabezado)
+directorio="${1:-.}"
+salida="${2:-datos_combinados.csv}"
+
+# Tomar el encabezado del primer archivo
+primer_archivo=$(ls "$directorio"/*.csv 2>/dev/null | head -1)
+
+if [ -z "$primer_archivo" ]; then
+    echo "No se encontraron archivos CSV en '$directorio'"
+    exit 1
+fi
+
+# Escribir encabezado
+head -1 "$primer_archivo" > "$salida"
+
+# Agregar datos de todos los archivos (sin encabezado)
+for archivo in "$directorio"/*.csv; do
+    tail -n +2 "$archivo" >> "$salida"
+    echo "  Agregado: $archivo ($(tail -n +2 "$archivo" | wc -l) filas)"
+done
+
+total=$(tail -n +2 "$salida" | wc -l)
+echo "Archivo combinado: $salida ($total filas totales)"
+```
+
+<Callout type="tip" title="¿Cuándo usar Bash vs Python para datos?">
+  Usa **Bash** cuando necesites: exploración rápida (cuántas filas, qué columnas), unir/dividir archivos, renombrar archivos en lote, automatizar pipelines, descargar datos.
+
+  Usa **Python/R** cuando necesites: análisis estadístico, limpieza compleja, visualizaciones, machine learning, manipulación avanzada de DataFrames.
+
+  La combinación de ambos es lo más poderoso: Bash prepara y orquesta, Python/R analiza.
+</Callout>
+
 ### Ejercicios del módulo
 
 1. Crea un script `saludo.sh` que reciba un nombre como argumento (`$1`) y diga "¡Hola, [nombre]!". Si no recibe argumento, que diga "¡Hola, mundo!".
@@ -416,4 +717,6 @@ Analicemos las partes nuevas:
 7. Crea un menú interactivo con `while` y `case` que tenga al menos 3 opciones útiles (fecha, archivos, espacio en disco, etc.).
 8. Modifica el script de respaldo del ejemplo para que muestre un mensaje de confirmación antes de crear el respaldo ("¿Estás seguro? (s/n)").
 9. Crea una función `contar_archivos` que reciba un directorio como argumento y diga cuántos archivos contiene.
-10. **Desafío**: Crea un script que reciba una extensión como argumento (ej: `txt`) y cuente cuántos archivos con esa extensión hay en el directorio actual y sus subdirectorios (usa `find`).
+10. Crea un script `explorar.sh` que reciba un archivo CSV como argumento y muestre: número de filas, número de columnas, nombres de las columnas, y las primeras 3 filas de datos.
+11. **Desafío 1**: Crea un script que reciba una extensión como argumento (ej: `txt`) y cuente cuántos archivos con esa extensión hay en el directorio actual y sus subdirectorios (usa `find`).
+12. **Desafío 2**: Crea un mini-pipeline: un script que (1) cree un archivo CSV de prueba con datos inventados, (2) llame a otro script que cuente las filas y columnas, y (3) muestre un resumen final. Practica la coordinación entre scripts.
