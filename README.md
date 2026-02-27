@@ -2,7 +2,7 @@
 
 Curso práctico de Terminal y Bash para principiantes (~10 horas), construido como una SPA (Single Page Application). Es parte de los módulos previos al curso de Ciencia de Datos en Salud de [Hazla con Datos](https://hazlacondatos.com/) y es complementario al [curso de configuración del entorno de desarrollo](https://paulovillarroel.github.io/configuracion-entorno/).
 
-**[Ver el curso en vivo](https://paulovillarroel.github.io/curso-terminal-bash/)**
+**[Ver el curso](https://paulovillarroel.github.io/curso-terminal-bash/)**
 
 ## Contenido
 
